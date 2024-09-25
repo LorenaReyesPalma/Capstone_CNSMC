@@ -1,0 +1,35 @@
+/* Ajustes de la imagen de fondo */
+body {
+    background-image: url('../../public/images/colegiofachada2.jpg'); /* Ajusta la ruta a tu imagen */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente */
+}
+
+/* Estilo del contenedor del formulario */
+.container {
+    width: 100%; /* Asegura que el contenedor se ajuste a diferentes tamaños de pantalla */
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco con 90% opacidad */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra para un efecto de profundidad */
+    position: relative;
+}
+
+/* Ajustes para el formulario */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    border-radius: 4px;
+}
+
+.btn-primary {
+    width: 100%;
+}
