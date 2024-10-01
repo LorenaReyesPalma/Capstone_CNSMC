@@ -72,13 +72,13 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('list-users') }}">
-                            <i class="fas fa-user"></i> Ver Usuarios
+                            <i class="fas fa-user"></i> Colaboradores
                             </a>
                         </li>
 
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('curso.index') }}">
-                                <i class="fas fa-search"></i> Buscar Alumnos
+                                <i class="fas fa-search"></i> Expedientes
                             </a>
                         </li>
                         <li class="nav-item">

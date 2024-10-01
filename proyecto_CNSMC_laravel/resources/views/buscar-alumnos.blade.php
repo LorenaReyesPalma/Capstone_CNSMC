@@ -63,19 +63,18 @@
                     <td>{{ $alumno->desc_grado }} {{ $alumno->letra_curso }}</td>
                     <td>
                         @if($alumno->expediente_existe)
-                            <a href="{{ route('alumno.expediente', ['run' => $alumno->run, 'dv' => $alumno->digito_ver]) }}"
-                                class="btn btn-info btn-sm">Ver Expediente</a>
+                            <a href="{{ route('alumno.expediente', ['run' => $alumno->run, 'dv' => $alumno->digito_ver]) }}" class="btn btn-info btn-sm">Ver Expediente</a>
                         @else
                             <a href="#" 
                                onclick="confirmarCreacionExpediente('{{ $alumno->run }}', '{{ $alumno->digito_ver }}')"
                                class="btn btn-success btn-sm">Crear Expediente</a>
                         @endif
+                        <a href="{{ route('derivacion.create', ['run' => $alumno->run, 'dv' => $alumno->digito_ver]) }}" class="btn btn-warning btn-sm">Nueva Derivación</a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="text-center">No se encontraron alumnos para el criterio de búsqueda
-                        seleccionado.</td>
+                    <td colspan="4" class="text-center">No se encontraron alumnos para el criterio de búsqueda seleccionado.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -87,7 +86,18 @@
 <script>
 function confirmarCreacionExpediente(run, dv) {
     if (confirm('¿Estás seguro de que deseas crear el expediente para el alumno?')) {
-        window.location.href = '{{ url("alumno/crear-expediente") }}' + '/' + run + '/' + dv;
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("expediente.create", ['run' => ':run', 'dv' => ':dv']) }}'.replace(':run', run).replace(':dv', dv);
+
+        var token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = '{{ csrf_token() }}';
+        form.appendChild(token);
+
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 </script>

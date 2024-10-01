@@ -35,42 +35,45 @@ class EquipoDirectivoController extends BaseController
     }
 
     // Guardar nuevo usuario en la base de datos
-    public function store(Request $request)
-    {
-        \Log::info('Datos recibidos para crear usuario:', $request->all());
+  // Guardar nuevo usuario en la base de datos
+public function store(Request $request)
+{
+    \Log::info('Datos recibidos para crear usuario:', $request->all());
 
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:user,email',
-            'password' => 'required|string|min:8|confirmed',
-            'id_category' => 'required|integer',
-            'role' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación para imagen
-        ]);
+    $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'required|email|unique:user,email',
+        'password' => 'required|string|min:8|confirmed',
+        'id_category' => 'required|integer',
+        'role' => 'nullable|string|max:255',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
 
-        \Log::info('Validación exitosa');
+    \Log::info('Validación exitosa');
 
-        // Manejar la imagen
-        $nombreArchivo = null;
-        if ($request->hasFile('image')) {
-            $nombreArchivo = $request->file('image')->store('images', 'public');
-        }
-
-        DB::table('user')->insert([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'id_category' => $request->id_category,
-            'role' => $request->role ?? 'Default Role',
-            'image' => $nombreArchivo, // Guardar solo la ruta relativa
-        ]);
-
-        \Log::info('Usuario guardado correctamente');
-
-        return redirect()->route('equipo-directivo.profile')->with('success', 'Usuario creado correctamente.');
+    // Manejar la imagen
+    $nombreArchivo = null;
+    if ($request->hasFile('image')) {
+        $image = $request->file('image');
+        $nombreArchivo = time() . '.' . $image->getClientOriginalExtension();
+        $image->move(public_path('images'), $nombreArchivo); // Guardar en public/images
     }
+
+    DB::table('user')->insert([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'id_category' => $request->id_category,
+        'role' => $request->role ?? 'Default Role',
+        'image' => $nombreArchivo ? 'images/' . $nombreArchivo : null, // Guardar la ruta relativa
+    ]);
+
+    \Log::info('Usuario guardado correctamente');
+
+    return redirect()->route('equipo-directivo.profile')->with('success', 'Usuario creado correctamente.');
+}
 
     // Función para listar usuarios
     public function listUsers()

@@ -20,6 +20,7 @@ class Expediente extends Model
         'genero',
         'fecha_nacimiento',
         'direccion',
+        'region',
         'comuna_residencia',
         'email',
         'telefono',
