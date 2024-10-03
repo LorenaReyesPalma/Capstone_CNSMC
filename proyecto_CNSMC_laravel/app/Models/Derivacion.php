@@ -5,6 +5,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Citacion; 
 
 class Derivacion extends Model
 {
@@ -34,4 +35,9 @@ class Derivacion extends Model
     ];
 
     // Si tienes relaciones o métodos adicionales, agrégales aquí
+
+    public function citaciones()
+    {
+        return $this->hasMany(Citacion::class);
+    }
 }

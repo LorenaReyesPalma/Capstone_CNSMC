@@ -24,6 +24,7 @@ class Expediente extends Model
         'comuna_residencia',
         'email',
         'telefono',
+        'comuna_id'
         // Agrega otros campos si es necesario
     ];
 

@@ -9,6 +9,8 @@ use App\Http\Controllers\PieController;
 use App\Http\Controllers\CursoController;
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\DerivacionController;
+use App\Http\Controllers\CitacionController;
+
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
@@ -51,7 +53,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/derivacion/{run}/{dv}', [DerivacionController::class, 'create'])->name('derivacion.create');
     Route::post('/derivacion/store', [DerivacionController::class, 'store'])->name('derivacion.store');
+    Route::get('/derivacion/{id}', [DerivacionController::class, 'show'])->name('derivacion.show');
 
+    // citaciones
+
+    Route::post('/derivaciones/{id}/citacion', [CitacionController::class, 'store'])->name('citaciones.store');
+    
 
 
     Route::get('/convivencia-escolar-profile', [ConvivenciaEscolarController::class, 'index'])->name('convivencia-escolar.profile');

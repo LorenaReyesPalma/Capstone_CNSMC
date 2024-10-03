@@ -19,6 +19,7 @@ class AuthController extends Controller
         // Obtener los datos del usuario
         $user = User::where('email', $request->email)->first();
 
+
         if ($user && Hash::check($request->password, $user->password)) {
             // Autenticar al usuario manualmente
             Auth::loginUsingId($user->user_id);

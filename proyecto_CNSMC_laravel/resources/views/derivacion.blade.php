@@ -1,6 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
+@if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
 <div class="container">
     <h1 class="mb-4 text-center">FICHA DERIVACIÓN CONVIVENCIA ESCOLAR 2024</h1>
 
@@ -68,7 +85,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="telefono">Teléfono:</label>
-                                    <input type="text" name="telefono" id="telefono" class="form-control" required>
+                                    <input type="text" name="telefono" id="telefono"  value="{{ $telefono }}"class="form-control" required>
                                 </div>
                             </div>
                         </div>

@@ -5,25 +5,38 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Matricula;
 use App\Models\Expediente;
+use App\Models\Derivacion;
+use App\Models\User;
+
+
 use Illuminate\Support\Facades\Http; // Asegúrate de que esta línea esté aquí
 
 class AlumnoController extends Controller
 {
-    public function verExpediente($run, $dv)
-    {
-        // Lógica para obtener el alumno y el expediente
-        $alumno = Matricula::where('run', $run)->where('digito_ver', $dv)->first();
-        $expediente = Expediente::where('run', $run)->where('digito_ver', $dv)->first();
-        
-        // Obtener las regiones (suponiendo que ya lo tienes definido)
-        $regiones = $this->obtenerRegiones(); // Asegúrate de que esto devuelve las regiones
+
+public function verExpediente($run, $dv)
+{
+    // Lógica para obtener el alumno y el expediente
+    $alumno = Matricula::where('run', $run)->where('digito_ver', $dv)->first();
+    $expediente = Expediente::where('run', $run)->where('digito_ver', $dv)->first();
     
-        // Obtener comunas de la región 11 (esto podría ser dinámico basado en la región seleccionada)
-        $comunas = $this->obtenerComunasPorRegion(11); // Cambia 11 según la región seleccionada
-    
-        return view('alumno.expediente', compact('alumno', 'expediente', 'regiones', 'comunas'));
-    }
-    
+    // Obtener las derivaciones y el nombre del colaborador
+    $derivaciones = Derivacion::where('run', $run)->where('digito_ver', $dv)->get()->map(function ($derivacion) {
+        // Obtener el nombre del colaborador
+        $colaborador = User::where('user_id', $derivacion->colaborador)->first();
+        $derivacion->colaborador_nombre = $colaborador ? $colaborador->first_name . ' ' . $colaborador->last_name : 'Desconocido';
+        return $derivacion;
+    });
+
+    // Obtener las regiones (suponiendo que ya lo tienes definido)
+    $regiones = $this->obtenerRegiones(); // Asegúrate de que esto devuelve las regiones
+
+    // Obtener comunas de la región 11 (esto podría ser dinámico basado en la región seleccionada)
+    $comunas = $this->obtenerComunasPorRegion(11); // Cambia 11 según la región seleccionada
+
+    return view('alumno.expediente', compact('alumno', 'expediente', 'regiones', 'comunas', 'derivaciones'));
+}
+
     private function obtenerComunasPorRegion($regionId)
     {
         $response = file_get_contents("https://apis.digital.gob.cl/dpa/regiones/$regionId/comunas");
@@ -69,34 +82,7 @@ class AlumnoController extends Controller
                          ->with('success', 'Expediente creado exitosamente.');
     }
 
-    // // Actualizar expediente
-    // public function updateExpediente(Request $request, $run, $dv)
-    // {
-    //     // Validar los datos
-    //     $validatedData = $request->validate([
-    //         'curso' => 'required|string|max:255',
-    //         'genero' => 'required|string|in:M,F',
-    //         'fecha_nacimiento' => 'required|date',
-    //         'direccion' => 'required|string|max:255',
-    //         'comuna_residencia' => 'required|string|max:255',
-    //         'email' => 'nullable|email|max:255',
-    //         'telefono' => 'nullable|string|max:15',
-    //     ]);
-    
-    //     // Encontrar el expediente
-    //     $expediente = Expediente::where('run', $run)->where('digito_ver', $dv)->first();
-    
-    //     if (!$expediente) {
-    //         return redirect()->route('curso.index')->with('error', 'Expediente no encontrado.');
-    //     }
-    
-    //     // Actualizar el expediente
-    //     $expediente->update($validatedData);
-    
-    //     return redirect()->route('curso.index')->with('success', 'Expediente actualizado correctamente.');
-    // }
 
-    // Actualizar expediente
 public function updateExpediente(Request $request, $run, $dv)
 {
     // Validar los datos
@@ -104,10 +90,12 @@ public function updateExpediente(Request $request, $run, $dv)
         'curso' => 'required|string|max:255',
         'genero' => 'required|string|in:M,F',
         'fecha_nacimiento' => 'required|date',
-        'direccion' => 'required|string|max:255',
-        'comuna_residencia' => 'required|string|max:255', // Asegúrate de validar el nombre de la comuna
+        'direccion' => 'nullable|string|max:255',
+        'comuna_residencia' => 'nullable|string|max:255',
         'email' => 'nullable|email|max:255',
         'telefono' => 'nullable|string|max:15',
+        'region' => 'nullable|integer',  // Validar que el ID de la región es un número
+        'comuna_id' => 'nullable|integer',  // Validar que el ID de la comuna es un número
     ]);
 
     // Encontrar el expediente
@@ -122,13 +110,13 @@ public function updateExpediente(Request $request, $run, $dv)
     $expediente->genero = $validatedData['genero'];
     $expediente->fecha_nacimiento = $validatedData['fecha_nacimiento'];
     $expediente->direccion = $validatedData['direccion'];
-    $expediente->comuna_residencia = $validatedData['comuna_residencia']; // Guardar el nombre de la comuna
+    $expediente->comuna_residencia = $validatedData['comuna_residencia']; 
     $expediente->email = $validatedData['email'];
     $expediente->telefono = $validatedData['telefono'];
-
-    // Guardar cambios
+    $expediente->region = $validatedData['region'];  // Guardar el ID de la región
+    $expediente->comuna_id = $validatedData['comuna_id'];  // Guardar el ID de la comuna
+    
     $expediente->save();
-
     return redirect()->route('curso.index')->with('success', 'Expediente actualizado correctamente.');
 }
 
