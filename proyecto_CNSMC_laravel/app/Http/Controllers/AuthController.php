@@ -11,40 +11,53 @@ use PHPMailer\PHPMailer\Exception;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
-        // Validar los datos recibidos
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
 
-        // Obtener los datos del usuario
-        $user = User::where('email', $request->email)->first();
-
-
-        if ($user && Hash::check($request->password, $user->password)) {
-            // Autenticar al usuario manualmente
-            Auth::loginUsingId($user->user_id);
-
-            // Verificar la autenticación
-            if (Auth::check()) {
-                \Log::info('Usuario autenticado: ' . Auth::user()->user_id);
-            } else {
-                \Log::info('Usuario no autenticado');
+        public function login(Request $request)
+        {
+            // Validar los datos recibidos
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+        
+            // Obtener los datos del usuario
+            $user = User::where('email', $request->email)->first();
+        
+            // Verificar si el usuario está bloqueado
+            if ($user && $user->lockout_time && now()->timezone('America/Santiago')->lessThan($user->lockout_time)) {
+                return redirect()->route('login')->withErrors(['email' => 'Tu cuenta está bloqueada. Intenta nuevamente en 30 minutos.']);
             }
+        
+            // Comprobar las credenciales
+            if ($user && Hash::check($request->password, $user->password)) {
+                // Restablecer intentos fallidos y tiempo de bloqueo si la autenticación es correcta
+                $user->failed_attempts = 0;
+                $user->lockout_time = null;
+                $user->save();
+        
+                // Autenticar al usuario manualmente
+                Auth::loginUsingId($user->user_id);
+        
+                // Redirigir según la categoría del usuario
+                return redirect($this->getRedirectUrl($user->id_category));
+            } else {
+                if ($user) {
+                    // Incrementar los intentos fallidos
+                    $user->failed_attempts += 1;
+        
+                    // Bloquear la cuenta si los intentos fallidos son 3
+                    if ($user->failed_attempts >= 3) {
+                        $user->lockout_time = now()->timezone('America/Santiago')->addMinutes(30);
 
-            // Obtener la categoría del usuario
-            $id_category = $user->id_category;
-
-            // Redirigir según la categoría del usuario
-            return redirect($this->getRedirectUrl($id_category));
-        } else {
-            \Log::error('Error de autenticación para el correo: ' . $request->email);
-            return redirect()->route('login')->withErrors(['email' => 'Credenciales incorrectas.']);
+                    }
+        
+                    $user->save();
+                }
+        
+                return redirect()->route('login')->withErrors(['email' => 'Credenciales incorrectas.']);
+            }
         }
-    }
-
+    
     private function getRedirectUrl($id_category)
     {
         switch ($id_category) {
