@@ -1,5 +1,6 @@
 <?php
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EquipoDirectivoController;
 use App\Http\Controllers\ConvivenciaEscolarController;
@@ -10,22 +11,33 @@ use App\Http\Controllers\CursoController;
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\DerivacionController;
 use App\Http\Controllers\CitacionController;
+use Illuminate\Support\Facades\Password;
 
-
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Http;
-
-
-// Ruta para mostrar el formulario de inicio de sesión
+// Rutas para el inicio de sesión
 Route::get('/login', function () {
     return view('login');
 })->name('login');
 
 // Ruta para procesar el inicio de sesión
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    // Rutas para restablecimiento de contraseñas
+    Route::get('password/reset', function () {
+        return view('auth.passwords.email');  // Vista de solicitud de restablecimiento
+    })->name('password.request');
+    
+    Route::post('password/email', [AuthController::class, 'enviarRecuperacion'])->name('password.email');
+    
+    Route::get('password/reset/{token}', function ($token) {
+        return view('auth.passwords.reset', ['token' => $token]); // Vista para restablecer la contraseña
+    })->name('password.reset');
+    
+    Route::post('password/reset', [AuthController::class, 'reset'])->name('password.update');
+
 
 // Rutas protegidas por autenticación
 Route::middleware('auth')->group(function () {
+   // CRUD y demás rutas ya definidas
+
     Route::get('/equipo-directivo-profile', [EquipoDirectivoController::class, 'index'])->name('equipo-directivo.profile');
 
     // CRUD para nuevos usuarios
@@ -45,34 +57,21 @@ Route::middleware('auth')->group(function () {
     Route::get('alumno/expediente/{run}/{dv}', [AlumnoController::class, 'verExpediente'])->name('alumno.expediente');
     Route::post('/alumno/expediente/{run}/{dv}', [AlumnoController::class, 'crearExpediente'])->name('expediente.create'); // Cambiado a POST para crear
     Route::put('/expediente/{run}/{dv}', [AlumnoController::class, 'updateExpediente'])->name('expediente.update');
-    // Si deseas mostrar el expediente en una vista separada, puedes añadir otra ruta
     Route::get('alumno/expediente/show/{run}/{dv}', [AlumnoController::class, 'showExpediente'])->name('expediente.show');
     Route::get('/comunas/{codigoRegion}', [AlumnoController::class, 'cargarComunas']);
 
     // derivaciones
-
     Route::get('/derivacion/{run}/{dv}', [DerivacionController::class, 'create'])->name('derivacion.create');
     Route::post('/derivacion/store', [DerivacionController::class, 'store'])->name('derivacion.store');
     Route::get('/derivacion/{id}', [DerivacionController::class, 'show'])->name('derivacion.show');
 
     // citaciones
-
     Route::post('/derivaciones/{id}/citacion', [CitacionController::class, 'store'])->name('citaciones.store');
-    
-
 
     Route::get('/convivencia-escolar-profile', [ConvivenciaEscolarController::class, 'index'])->name('convivencia-escolar.profile');
     Route::get('/profesores-jefes-profile', [ProfesoresJefesController::class, 'index'])->name('profesores-jefes.profile');
     Route::get('/profesores-asignatura-profile', [ProfesoresAsignaturaController::class, 'index'])->name('profesores-asignatura.profile');
     Route::get('/pie-profile', [PieController::class, 'index'])->name('pie.profile');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-
-// routes/web.php
-
-
-Route::get('/api/comunas/{regionId}', function ($regionId) {
-    $response = Http::get("https://apis.digital.gob.cl/dpa/regiones/{$regionId}/comunas");
-    return $response->json();
-});
-

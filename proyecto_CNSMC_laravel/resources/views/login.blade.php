@@ -52,6 +52,13 @@
             <button type="submit" class="btn btn-primary mt-4 w-100">Login</button>
         </form>
 
+        <!-- Botón para abrir el modal de recuperación de contraseña -->
+        <div class="text-center mt-3">
+            <button type="button" class="btn btn-link" data-toggle="modal" data-target="#forgotPasswordModal">
+                ¿Olvidaste tu contraseña?
+            </button>
+        </div>
+
         @if ($errors->any())
             <div class="alert alert-danger mt-3">
                 <ul>
@@ -62,6 +69,38 @@
             </div>
         @endif
     </div>
+
+    <!-- Modal de Recuperación de Contraseña -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" role="dialog" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel">Recuperar Contraseña</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" action="{{ route('password.email') }}">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="recovery-email">Ingresa tu correo electrónico para recibir un enlace de recuperación:</label>
+                            <input type="email" name="email" id="recovery-email" class="form-control" required placeholder="Correo Institucional" autocomplete="email">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Enviar enlace de recuperación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap y jQuery para el modal -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <!-- Script para alternar la visibilidad de la contraseña -->
     <script>
