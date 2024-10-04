@@ -74,4 +74,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/pie-profile', [PieController::class, 'index'])->name('pie.profile');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Rutas para Profesor Jefe
+    Route::middleware('auth')->group(function () {
+    Route::get('/profejefe/profile', [ProfeJefeController::class, 'index'])->name('profejefe.profile');
+    Route::post('/profejefe/derivacion/store', [ProfeJefeController::class, 'store'])->name('profejefe.derivacion.store');
+    Route::get('/profejefe/derivacion/{id}', [ProfeJefeController::class, 'show'])->name('profejefe.derivacion.show');
+});
+
 });
