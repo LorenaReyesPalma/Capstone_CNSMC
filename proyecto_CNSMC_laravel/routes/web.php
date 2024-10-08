@@ -68,18 +68,18 @@ Route::middleware('auth')->group(function () {
     // citaciones
     Route::post('/derivaciones/{id}/citacion', [CitacionController::class, 'store'])->name('citaciones.store');
 
-    Route::get('/convivencia-escolar-profile', [ConvivenciaEscolarController::class, 'index'])->name('convivencia-escolar.profile');
-    Route::get('/profesores-jefes-profile', [ProfesoresJefesController::class, 'index'])->name('profesores-jefes.profile');
-    Route::get('/profesores-asignatura-profile', [ProfesoresAsignaturaController::class, 'index'])->name('profesores-asignatura.profile');
-    Route::get('/pie-profile', [PieController::class, 'index'])->name('pie.profile');
+    //Route::get('/convivencia-escolar-profile', [ConvivenciaEscolarController::class, 'index'])->name('convivencia-escolar.profile');
+    //Route::get('/profesores-jefes-profile', [ProfesoresJefesController::class, 'index'])->name('profesores-jefes.profile');
+    //Route::get('/profesores-asignatura-profile', [ProfesoresAsignaturaController::class, 'index'])->name('profesores-asignatura.profile');
+    //Route::get('/pie-profile', [PieController::class, 'index'])->name('pie.profile');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Rutas para Profesor Jefe
-    Route::middleware('auth')->group(function () {
-    Route::get('/profejefe/profile', [ProfeJefeController::class, 'index'])->name('profejefe.profile');
-    Route::post('/profejefe/derivacion/store', [ProfeJefeController::class, 'store'])->name('profejefe.derivacion.store');
-    Route::get('/profejefe/derivacion/{id}', [ProfeJefeController::class, 'show'])->name('profejefe.derivacion.show');
+   
+    Route::get('/profesores-jefes/profe-jefeindex', [ProfesoresJefesController::class, 'index'])->name('profe-jefeindex');
+    Route::post('/profejefe/derivacion/store', [ProfesoresJefesController::class, 'store'])->name('profejefe.derivacion.store');
+    Route::get('/profejefe/derivacion/{id}', [ProfesoresJefesController::class, 'show'])->name('profejefe.derivacion.show');
 });
 
-});
+
