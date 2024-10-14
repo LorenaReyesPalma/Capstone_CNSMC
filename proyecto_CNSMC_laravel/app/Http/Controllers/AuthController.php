@@ -66,7 +66,7 @@ class AuthController extends Controller
             case 2:
                 return route('convivencia-escolar.profile');
             case 3:
-                return route('profesores-jefes.profile');
+                return route('profesores-jefe.profe-jefeindex');
             case 4:
                 return route('profesores-asignatura.profile');
             case 5:

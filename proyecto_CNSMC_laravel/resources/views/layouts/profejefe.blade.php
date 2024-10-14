@@ -33,7 +33,7 @@
                         <a class="nav-link" href="#">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('equipo-directivo.profile') }}">Equipo Directivo</a>
+                        <a class="nav-link" href="{{ route('profesores-jefe.profe-jefeindex') }}">Profesor Jefe</a>
                     </li>
                     <!-- Agrega más enlaces de navegación aquí -->
                 </ul>
@@ -64,7 +64,7 @@
                 <div class="sidebar-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="{{ route('equipo-directivo.profile') }}">
+                            <a class="nav-link active" href="#">
                                 <i class="fas fa-exchange-alt"></i> Derivaciones
                             </a>
                         </li>
@@ -73,14 +73,10 @@
                                 <i class="fas fa-calendar-alt"></i> Citaciones Apoderado
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('list-users') }}">
-                                <i class="fas fa-user"></i> Colaboradores
-                            </a>
-                        </li>
+                     
 
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('curso.index') }}">
+                            <a class="nav-link" href="#">
                                 <i class="fas fa-search"></i> Expedientes
                             </a>
                         </li>

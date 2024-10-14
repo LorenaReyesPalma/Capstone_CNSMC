@@ -77,7 +77,7 @@ Route::middleware('auth')->group(function () {
 
     // Rutas para Profesor Jefe
    
-    Route::get('/profesores-jefes/profe-jefeindex', [ProfesoresJefesController::class, 'index'])->name('profe-jefeindex');
+    Route::get('/profesores-jefes/profe-jefeindex', [ProfesoresJefesController::class, 'index'])->name('profesores-jefe.profe-jefeindex');
     Route::post('/profejefe/derivacion/store', [ProfesoresJefesController::class, 'store'])->name('profejefe.derivacion.store');
     Route::get('/profejefe/derivacion/{id}', [ProfesoresJefesController::class, 'show'])->name('profejefe.derivacion.show');
 });

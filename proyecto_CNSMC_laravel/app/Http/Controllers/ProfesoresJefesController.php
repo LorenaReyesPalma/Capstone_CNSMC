@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Derivacion;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controller as BaseController;
 
-class ProfesoresJefesController extends Controller
+
+class ProfesoresJefesController extends BaseController
 {
     public function __construct()
     {
         $this->middleware('auth');
     }
-
+    
     public function index()
     {
         if (Auth::check()) {
@@ -21,7 +23,7 @@ class ProfesoresJefesController extends Controller
             \Log::info('Usuario no autenticado');
         }
 
-        return view('profe-jefeindex');
+        return view('profesores-jefes.profe-jefeindex');
     }
 
     public function store(Request $request)
