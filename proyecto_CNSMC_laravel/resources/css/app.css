@@ -1,0 +1,32 @@
+.btn-icon-only {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.btn-icon-only:hover {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+.green {
+    background-color: #28a745; /* Color verde */
+}
+.yellow {
+    background-color: #ffc107; /* Color amarillo */
+}
+.red {
+    background-color: #dc3545; /* Color rojo */
+}
+
+.custom-navbar {
+    padding-left: 15rem; /* Establece el padding-left en 20px */
+}

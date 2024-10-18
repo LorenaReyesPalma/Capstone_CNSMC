@@ -2,12 +2,12 @@
 
 @section('content')
 <div class="container">
-    <h1>Ficha de Derivación</h1>
+    <h1 style="color: #002A45;">Ficha Derivación</h1>
 
     <!-- Grilla para los datos del estudiante y los datos de la derivación en un solo contenedor -->
     <div class="card">
         <div class="card-header">
-            <h3>Datos del Estudiante y de la Derivación</h3>
+            <h3 >Datos del Estudiante y de la Derivación</h3>
         </div>
         <div class="card-body">
             <div class="row">
@@ -97,6 +97,8 @@
         </div>
     </div>
 
+
+
     <!-- CITACIONES -->
 
     <!-- Mostrar citaciones si existen -->
@@ -106,46 +108,47 @@
             <h3>Citaciones Realizadas</h3>
         </div>
         <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Fecha de Citación</th>
-                        <th>Hora</th>
-                        <th>Tipo de Acción</th>
-                        <th>Observaciones</th>
-                        <th>Citado por</th>
-                        <th>Estado</th>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fecha de Citación</th>
+                            <th>Hora</th>
+                            <th>Tipo de Acción</th>
+                            <th>Observaciones</th>
+                            <th>Citado por</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($citaciones as $citacion)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($citacion->fecha_citacion)->format('d-m-Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($citacion->hora_citacion)->format('H:i') }}</td>
+                            <td>{{ $citacion->tipo_accion }}</td>
+                            <td>{{ $citacion->observaciones }}</td>
+                            <td>{{ $citacion->colaborador_nombre }}</td>
+                            <td>
+                                @switch($derivacion->estado_id)
+                                @case(1)
+                                En espera
+                                @break
+                                @case(2)
+                                Aceptada
+                                @break
+                                @case(3)
+                                Finalizada
+                                @break
+                                @default
+                                Sin registro
+                                @endswitch
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($citaciones as $citacion)
-                    <tr>
-                        <td>{{ \Carbon\Carbon::parse($citacion->fecha_citacion)->format('d-m-Y') }}</td>
-                        <td>{{ \Carbon\Carbon::parse($citacion->hora_citacion)->format('H:i') }}</td>
-                        <td>{{ $citacion->tipo_accion }}</td>
-                        <td>{{ $citacion->observaciones }}</td>
-                        <td>{{ $citacion->colaborador_nombre }}</td>
-                        <td> @switch($derivacion->estado_id)
-                            @case(1)
-                            En espera
-                            @break
-                            @case(2)
-                            Aceptada
-                            @break
-                            @case(3)
-                            Finalizada
-                            @break
-                            @default
-                            Sin registro
-                            @endswitch</td>
-
-
-
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
         </div>
     </div>
     @else
@@ -154,33 +157,56 @@
     </div>
     @endif
 
-    <!-- Formulario para crear citación -->
-    <form action="{{ route('citaciones.store', $derivacion->id) }}" method="POST" class="mt-4">
-        @csrf
-        <div class="row">
-            <div class="col-md-4">
-                <label for="tipo_accion">Tipo de Acción</label>
-                <select name="tipo_accion" class="form-control" required>
-                    <option value="Entrevista Alumno">Entrevista al Alumno</option>
-                    <option value="Entrevista Apoderado">Entrevista al Apoderado</option>
-                    <option value="Tomar Acuerdos">Tomar Acuerdos</option>
-                </select>
+
+   <!-- Botón para abrir el modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#citacionModal">
+    Añadir Citación
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="citacionModal" tabindex="-1" aria-labelledby="citacionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="citacionModalLabel">Añadir Citación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Formulario para crear citación -->
+        <form action="{{ route('citaciones.store', $derivacion->id) }}" method="POST">
+            @csrf
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="tipo_accion">Tipo de Acción</label>
+                    <select name="tipo_accion" class="form-control" required>
+                        <option value="Entrevista Alumno">Entrevista al Alumno</option>
+                        <option value="Entrevista Apoderado">Entrevista al Apoderado</option>
+                        <option value="Tomar Acuerdos">Tomar Acuerdos</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="fecha_citacion">Fecha de Citación</label>
+                    <input type="date" name="fecha_citacion" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="hora_citacion">Hora de Citación</label>
+                    <input type="time" name="hora_citacion" class="form-control" required>
+                </div>
             </div>
-            <div class="col-md-4">
-                <label for="fecha_citacion">Fecha de Citación</label>
-                <input type="date" name="fecha_citacion" class="form-control" required>
+            <div class="form-group mt-3">
+                <label for="observaciones">Observaciones</label>
+                <textarea name="observaciones" class="form-control" rows="3"></textarea>
             </div>
-            <div class="col-md-4">
-                <label for="hora_citacion">Hora de Citación</label>
-                <input type="time" name="hora_citacion" class="form-control" required>
-            </div>
-        </div>
-        <div class="form-group mt-3">
-            <label for="observaciones">Observaciones</label>
-            <textarea name="observaciones" class="form-control" rows="3"></textarea>
-        </div>
-        <button type="submit" class="btn btn-success mt-2">Generar Citación</button>
-    </form>
+            <button type="submit" class="btn btn-success mt-2">Generar Citación</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 </div>
 @endsection

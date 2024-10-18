@@ -3,9 +3,10 @@
 @section('title', 'Editar Usuario')
 
 @section('content')
+<div class="container mt-2">
     <div class="row">
         <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1">
-            <h2>Editar Usuario</h2>
+            <h2 class="text-primary mb-4">Editar Usuario</h2>
             <form action="{{ route('update-user', $user->user_id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
@@ -42,9 +43,9 @@
                         <label for="image">Imagen del Usuario</label>
                         <div>
                             @if($user->image)
-                            <img src="{{ asset($user->image) }}" alt="Imagen del usuario" style="max-width: 150px; max-height: 150px;">
-                                @else
-                                <p>No hay imagen disponible.</p>
+                            <img src="{{ asset($user->image) }}" alt="Imagen del usuario" class="img-fluid" style="max-width: 150px; max-height: 150px;">
+                            @else
+                            <p>No hay imagen disponible.</p>
                             @endif
                         </div>
                     </div>
@@ -70,8 +71,7 @@
                 <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
             </form>
             <a href="{{ route('list-users') }}" class="btn btn-secondary mt-4">Volver</a>
-
         </div>
-
     </div>
+</div>
 @endsection

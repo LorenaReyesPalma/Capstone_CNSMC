@@ -36,4 +36,14 @@ class CitacionController extends Controller
         // Redirigir a la vista de la derivación usando su id
         return redirect()->route('derivacion.show', $derivacion_id)->with('success', 'Citación creada correctamente');
     }
+
+    public function citacionShow(Request $request)
+    {
+
+    
+ 
+          // Retornar la vista y pasar la derivación, motivos y tipo de entrevista
+          return view('citaciones.citacion');
+      }
+
 }

@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'image',
         'password',
+        'failed_attempts',
+        'lockout_time'
     ];
 
     /**

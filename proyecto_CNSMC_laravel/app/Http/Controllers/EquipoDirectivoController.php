@@ -18,14 +18,24 @@ class EquipoDirectivoController extends BaseController
 
     public function index()
     {
+
         if (Auth::check()) {
-            \Log::info('Usuario autenticado: ' . Auth::user()->user_id);
+            // Recuperar el usuario autenticado
+            $user = Auth::user();
+            \Log::info('Usuario autenticado: ' . $user->user_id);
+            $categories = Category::all();
+
         } else {
             \Log::info('Usuario no autenticado');
+            return redirect()->route('login'); // Redirigir si no está autenticado
         }
+        
 
-        return view('equipo-directivo-profile');
+    
+        // Pasar el usuario a la vista
+        return view('equipo-directivo-profile', compact('user','categories'));
     }
+    
 
     // Mostrar formulario de creación de usuario
     public function create()
@@ -39,6 +49,7 @@ class EquipoDirectivoController extends BaseController
 public function store(Request $request)
 {
     \Log::info('Datos recibidos para crear usuario:', $request->all());
+    $categories = Category::all(); // Obtener todas las categorías
 
     $request->validate([
         'first_name' => 'required|string|max:255',
@@ -78,7 +89,7 @@ public function store(Request $request)
     // Función para listar usuarios
     public function listUsers()
     {
-        $users = User::with('category')->paginate(10); // Cambia 10 por el número de usuarios que deseas mostrar por página
+        $users = User::with('category')->paginate(9); // Cambia 10 por el número de usuarios que deseas mostrar por página
         return view('equipo-directivo.list-users', compact('users'));
     }
     // Función para editar usuario
@@ -92,6 +103,7 @@ public function store(Request $request)
     // Función para actualizar el usuario
     public function updateUser(Request $request, $user_id)
     {
+
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -123,12 +135,18 @@ public function store(Request $request)
             'image' => $nombreArchivo,
         ]);
 
-        return redirect()->route('list-users')->with('success', 'Usuario actualizado correctamente.');
+        $categories = Category::all();
+
+
+        // return redirect()->route('list-users')->with('success', 'Usuario actualizado correctamente.');
+        return back()->with(['success' => 'Usuario actualizado correctamente.', 'user' => $user, 'categories' => $categories]);
+
     }
 
     // Función para eliminar usuario
     public function deleteUser($user_id)
     {
+
         User::where('user_id', $user_id)->delete();
         return redirect()->route('list-users')->with('success', 'Usuario eliminado correctamente.');
     }

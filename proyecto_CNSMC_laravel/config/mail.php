@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -40,11 +40,11 @@ return [
         'smtp' => [
             'transport' => 'smtp',
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'host' => env('MAIL_HOST', 'mail.cmvapp.cl'), // Cambia a 'mail.cmvapp.cl'
+            'port' => env('MAIL_PORT', 465), // Cambia a 465
+            'encryption' => env('MAIL_ENCRYPTION', 'smtps'), // Cambia a 'smtps'
+            'username' => env('MAIL_USERNAME'), // Usarás 'soporte@cmvapp.cl'
+            'password' => env('MAIL_PASSWORD'), // Usarás 'Soportecmv2043'
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
@@ -109,8 +109,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'soporte@cmvapp.cl'), // Cambia a tu dirección
+        'name' => env('MAIL_FROM_NAME', 'Tu Nombre'), // Cambia a tu nombre
     ],
 
 ];

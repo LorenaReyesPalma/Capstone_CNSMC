@@ -19,7 +19,7 @@
         </div>
     @endif
 <div class="container">
-    <h1 class="mb-4 text-center">FICHA DERIVACIÓN CONVIVENCIA ESCOLAR 2024</h1>
+    <h1 class="mb-4 text-center " style="color: #002A45;">FICHA DERIVACIÓN CONVIVENCIA ESCOLAR 2024</h1>
 
     <form action="{{ route('derivacion.store') }}" method="POST">
         @csrf
