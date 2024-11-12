@@ -13,15 +13,21 @@
 </div>
 
 <!-- Formulario de filtros -->
-<form method="GET" action="{{ route('derivaciones.estado') }}" class="mb-3">
+<form id="derivaciones-estado" method="GET" action="{{ route('derivaciones.estado') }}" class="mb-3"
+    enctype="multipart/form-data">
     <div class="row">
-        <div class="col-6 col-md-3 mb-2"> <!-- Columna que ocupa todo el ancho en pantallas pequeñas -->
-            <input type="date" name="fecha_desde" value="{{ old('fecha_desde', $fechaDesde) }}" class="form-control" placeholder="Desde">
+        <div class="col-6 col-md-3 mb-2">
+            <!-- Columna que ocupa todo el ancho en pantallas pequeñas -->
+            <input type="date" name="fecha_desde" value="{{ old('fecha_desde', $fechaDesde) }}" class="form-control"
+                placeholder="Desde">
         </div>
-        <div class="col-6 col-md-3 mb-2"> <!-- Columna que ocupa todo el ancho en pantallas pequeñas -->
-            <input type="date" name="fecha_hasta" value="{{ old('fecha_hasta', $fechaHasta) }}" class="form-control" placeholder="Hasta">
+        <div class="col-6 col-md-3 mb-2">
+            <!-- Columna que ocupa todo el ancho en pantallas pequeñas -->
+            <input type="date" name="fecha_hasta" value="{{ old('fecha_hasta', $fechaHasta) }}" class="form-control"
+                placeholder="Hasta">
         </div>
-        <div class="col-6 col-md-3 mb-2"> <!-- Columna que ocupa todo el ancho en pantallas pequeñas -->
+        <div class="col-6 col-md-3 mb-2">
+            <!-- Columna que ocupa todo el ancho en pantallas pequeñas -->
             <select name="estado_id" class="form-control">
                 <option value="">Seleccionar Estado</option>
                 <option value="1" {{ $estadoId == 1 ? 'selected' : '' }}>En espera</option>
@@ -29,11 +35,12 @@
                 <option value="3" {{ $estadoId == 3 ? 'selected' : '' }}>Finalizada</option>
             </select>
         </div>
-        <div class="col-6 col-md-3 mb-2"> <!-- Columna que ocupa auto en pantallas medianas y más grandes -->
-            <button  type="submit" class="btn btn-primary col-5 col-md-5">Filtrar</button>
+        <div class="col-6 col-md-3 mb-2">
+            <!-- Columna que ocupa auto en pantallas medianas y más grandes -->
+            <button type="submit" class="btn btn-primary col-5 col-md-5" form="derivaciones-estado">Filtrar</button>
             <!-- Botón para restablecer filtros con icono -->
             <a href="{{ route('derivaciones.estado') }}" class="btn btn-secondary col-5 col-md-5">
-                <i class="fas fa-undo"></i> 
+                <i class="fas fa-undo"></i>
             </a>
         </div>
     </div>
@@ -51,7 +58,7 @@
                     <th>Fecha</th>
                     <th class="col-lg-2">Alumno</th>
                     <th class="col-lg-3">Motivo</th>
-                    <th class="col-lg-3">Acciones</th>
+                    <!-- <th class="col-lg-3">Acciones</th> -->
                     <th>Responsable</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -59,16 +66,21 @@
             </thead>
             <tbody>
                 @foreach($derivaciones as $derivacion)
-                <tr>
-                    <td>{{ $derivacion->fecha_derivacion }}</td>
+                @php
+                $fechaDerivacion = \Carbon\Carbon::parse($derivacion->fecha_derivacion)->startOfDay();
+                $fechaActual = \Carbon\Carbon::now()->startOfDay();
+                $diasDiferencia = $fechaDerivacion->diffInDays($fechaActual);
+                @endphp
+                <tr class="{{ $diasDiferencia > 3 && $derivacion->estado_id == 1 ? 'table-warning' : '' }}">
+                <td>{{ $derivacion->fecha_derivacion }}</td>
                     <td>{{ $derivacion->nombre_estudiante }}</td>
 
                     <td class="col-lg-3" style="white-space: normal;">
                         {{ Str::limit(nl2br(e($derivacion->motivo_derivacion)), 100, '...') }}
                     </td>
-                    <td class="col-lg-3" style="white-space: normal;">
+                    <!-- <td class="col-lg-3" style="white-space: normal;">
                         {{ Str::limit(nl2br(e($derivacion->acciones_realizadas)), 100, '...') }}
-                    </td>
+                    </td> -->
                     <td>{{ $derivacion->colaborador_nombre }}</td>
                     <td>
                         @switch($derivacion->estado_id)
@@ -102,7 +114,11 @@
                                 </button>
                             </form>
                         </div>
-
+                        @if($diasDiferencia > 3 && $derivacion->estado_id == 1)
+                        <span class="text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Atrasada
+                        </span>
+                        @endif
 
                     </td>
                 </tr>

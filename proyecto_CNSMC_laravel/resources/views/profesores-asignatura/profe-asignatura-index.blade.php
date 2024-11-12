@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container mt-1">
-<h3 class="mb-3 text-start">Perfil Docente</h3>
-<p class="text-start" style="font-size: 0.9rem;">Bienvenido Docente, Desde aquí puedes
-        gestionar las derivaciones, citaciones y consultar las estadísticas.</p>
+    <h3 class="mb-3 text-start">Perfil Docente</h3>
+    <p class="text-start" style="font-size: 0.9rem;">Bienvenido Docente, Desde aquí puedes
+    gestionar las derivaciones, citaciones y consultar las estadísticas.</p>
 </div>
 
 <div class="container mt-4">

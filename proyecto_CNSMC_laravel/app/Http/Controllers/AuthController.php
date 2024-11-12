@@ -64,13 +64,13 @@ class AuthController extends Controller
             case 1:
                 return route('equipo-directivo.profile');
             case 2:
-                return route('convivencia-escolar.profile');
+                return route('convivencia.convivencia-index');
             case 3:
-                return route('profesores-jefe.profe-jefeindex');
+                return route('profesores-jefes.profe-jefeindex');
             case 4:
-                return route('profesores-asignatura.profile');
+                return route('profesores-asignatura.profe-asignatura-index');
             case 5:
-                return route('pie.profile');
+                return route('pie.pie-index');
             default:
                 return route('login'); // Redirige al login si la categoría no es válida
         }

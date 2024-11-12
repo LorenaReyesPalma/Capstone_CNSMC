@@ -6,10 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Matricula;
 use Illuminate\Support\Facades\DB;
 use App\Models\Expediente;
+use App\Models\Curso;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 
 class CursoController extends Controller
 {
+ 
     public function index()
     {
         // Obtener todos los cursos para mostrar en el formulario
@@ -20,9 +24,28 @@ class CursoController extends Controller
             ->orderBy('desc_grado')
             ->orderBy('letra_curso')
             ->get();
-
-        return view('buscar-alumnos', ['cursos' => $cursos]);
+    
+        // Obtener los alumnos con expediente y aplicar paginación
+        $alumnosConExpediente = Matricula::join('expedientes', function($join) {
+                $join->on('matricula.run', '=', 'expedientes.run')
+                     ->on('matricula.digito_ver', '=', 'expedientes.digito_ver');
+            })
+            ->orderBy('expedientes.fecha_creacion', 'desc') // Ordenar por fecha_creacion de expedientes
+            ->paginate(10, ['matricula.*']); // Especifica 10 resultados por página (ajusta el número si es necesario)
+        
+        // Marcar que estos alumnos tienen un expediente
+        foreach ($alumnosConExpediente as $alumno) {
+            $alumno->expediente_existe = true;
+        }
+    
+        // Pasar los cursos y alumnos a la vista
+        return view('buscar-alumnos', [
+            'cursos' => $cursos,
+            'alumnos' => $alumnosConExpediente // Mostrar alumnos con expediente inicialmente con paginación
+        ]);
     }
+    
+
 
     public function buscarAlumnos(Request $request)
     {
@@ -126,5 +149,67 @@ class CursoController extends Controller
 
     return view('buscar-alumnos', compact('alumnos', 'cursos'));
 }
+
+
+public function asignarProfesorCurso(Request $request)
+{
+    // Verificar los valores recibidos
+    Log::info('Datos recibidos en asignarProfesorCurso:', $request->all());  // Esto escribirá todos los datos recibidos en el log
+
+    // Obtener los IDs del curso y el profesor del formulario
+    $cursoId = $request->input('curso_id');
+    $userId = $request->input('user_id');
+
+    Log::info('Curso ID recibido:', ['curso_id' => $cursoId]);  // Escribir solo el curso_id en el log
+    Log::info('User ID recibido:', ['user_id' => $userId]);  // Escribir solo el user_id en el log
+
+    // Obtener el curso y verificar si ya tiene un profesor asignado
+    $curso = Curso::findOrFail($cursoId);
+
+    // Verificar si el profesor está asignado a otro curso
+    $profesorAsignado = User::where('user_id', $userId)->first();
+
+    if ($profesorAsignado) {
+        // Si el profesor ya está asignado a otro curso, lo eliminamos de su asignación anterior
+        Log::info('Profesor ya asignado a otro curso. Desvinculando...');
+        $profesorAsignado->cursos()->detach();  // Desvincula al profesor de todos los cursos a los que esté asignado
+    }
+
+    // Asignar el nuevo profesor al curso
+    Log::info('Asignando nuevo profesor al curso...');
+    $curso->profesores()->sync([$userId]);  // Esto asigna el profesor al curso y asegura que no haya asignaciones duplicadas
+
+    Log::info('Nuevo profesor asignado al curso:', ['user_id' => $userId]);  // Confirmar que el profesor fue asignado
+
+    return redirect()->back()->with('success', 'Profesor asignado o cambiado exitosamente.');
+}
+
+
+
+public function quitarProfesorCurso(Request $request)
+{
+    // Verificar los valores recibidos
+    Log::info('Datos recibidos en quitarProfesorCurso:', $request->all());  // Esto escribirá todos los datos recibidos en el log
+
+    // Obtener los IDs del curso y el profesor del formulario
+    $cursoId = $request->input('curso_id');
+    $userId = $request->input('user_id');
+
+    Log::info('Curso ID recibido para quitar profesor:', ['curso_id' => $cursoId]);
+    Log::info('User ID recibido para quitar profesor:', ['user_id' => $userId]);
+
+    // Buscar el curso y el profesor, y eliminar la relación
+    $curso = Curso::findOrFail($cursoId);
+
+    // Verificar si el profesor está asignado
+    Log::info('Curso encontrado para quitar profesor:', ['curso' => $curso]);
+
+    // Eliminar la relación con el profesor actual
+    $curso->profesores()->detach($userId);
+    Log::info('Profesor quitado del curso:', ['user_id' => $userId]);
+
+    return redirect()->back()->with('success', 'Profesor quitado del curso exitosamente.');
+}
+
 
 }

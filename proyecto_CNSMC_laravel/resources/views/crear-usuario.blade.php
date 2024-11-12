@@ -33,7 +33,7 @@
                     <label for="id_category">Categoría</label>
                     <select class="form-control" id="id_category" name="id_category" required>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id_category }}">{{ $category->category }}</option>
+                        <option value="{{ $category->id_category }}">{{ $category->category }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -45,7 +45,7 @@
             </div>
 
             <!-- Campos de contraseña y confirmación -->
-            <div class="form-row">
+            <!-- <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="password">Contraseña</label>
                     <input type="password" class="form-control" id="password" name="password" required>
@@ -53,14 +53,15 @@
 
                 <div class="form-group col-md-6">
                     <label for="password_confirmation">Confirmar Contraseña</label>
-                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
+                        required>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Campo de carga de imagen -->
             <div class="form-group">
                 <label for="image">Imagen</label>
-                <input type="file" class="form-control" id="image" name="image" required>
+                <input type="file" class="form-control" id="image" name="image">
             </div>
 
             <button type="submit" class="btn btn-primary">Añadir Usuario</button>
@@ -69,7 +70,7 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     const firstNameInput = document.getElementById('first_name');
     const lastNameInput = document.getElementById('last_name');
     const emailInput = document.getElementById('email');

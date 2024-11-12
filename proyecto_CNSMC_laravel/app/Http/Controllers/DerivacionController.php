@@ -260,14 +260,24 @@ public function show($id)
     // Método para listar todas las derivaciones
     public function listarDerivaciones(Request $request)
     {
+// Obtener el usuario autenticado
+        $usuario = Auth::user();
+
         // Obtener los filtros de fecha y estado desde la solicitud
         $fechaDesde = $request->input('fecha_desde');
         $fechaHasta = $request->input('fecha_hasta');
         $estadoId = $request->input('estado_id');
     
         // Obtener todas las derivaciones y aplicar los filtros
+    // Construir la consulta de derivaciones dependiendo del categoria_id del usuario
+    if (in_array($usuario->id_category, [3, 4, 5])) {
+        // Si el usuario tiene categoria_id 3, 4, o 5, solo mostrar derivaciones en las que es colaborador
+        $derivaciones = Derivacion::where('colaborador', $usuario->user_id);
+    } else {
+        // Si no, mostrar todas las derivaciones
         $derivaciones = Derivacion::query();
-    
+    }
+
         // Aplicar filtro por fecha desde
         if ($fechaDesde) {
             $derivaciones->where('fecha_derivacion', '>=', $fechaDesde);
@@ -283,8 +293,10 @@ public function show($id)
             $derivaciones->where('estado_id', $estadoId);
         }
     
-        $derivaciones = $derivaciones->get();
-    
+        $derivaciones = $derivaciones->orderBy('estado_id', 'asc')
+        ->orderBy('fecha_derivacion', 'asc')
+        ->get();
+
         // Iterar sobre las derivaciones para obtener el nombre completo del colaborador
         foreach ($derivaciones as $derivacion) {
             $colaborador = User::where('user_id', $derivacion->colaborador)->first();
@@ -302,23 +314,28 @@ public function show($id)
     
     
 
-public function destroy($id)
-{
-    // Obtener la derivación por su id
-    $derivacion = Derivacion::findOrFail($id);
-
-    // Obtener RUN y DV antes de eliminar la derivación
-    $run = $derivacion->run; // Asegúrate de que 'run' sea un campo en tu modelo
-    $dv = $derivacion->digito_ver; // Asegúrate de que 'digito_ver' sea un campo en tu modelo
-
-    // Eliminar la derivación
-    $derivacion->delete();
-
-    // Redirigir a la ruta del expediente del alumno con RUN y DV
-    return redirect()->route('alumno.expediente', ['run' => $run, 'dv' => $dv])
-                     ->with('success', 'Derivación eliminada exitosamente.');
-}
-
+    public function destroy($id)
+    {
+        // Obtener la derivación por su id
+        $derivacion = Derivacion::findOrFail($id);
+    
+        // Verificar si el estado_id es 1 antes de permitir la eliminación
+        if ($derivacion->estado_id != 1) {
+            return redirect()->back()->with('error', 'La derivación no puede ser eliminada "Solo se puede eliminar si se encuentra pendiente".');
+        }
+    
+        // Obtener RUN y DV antes de eliminar la derivación
+        $run = $derivacion->run; // Asegúrate de que 'run' sea un campo en tu modelo
+        $dv = $derivacion->digito_ver; // Asegúrate de que 'digito_ver' sea un campo en tu modelo
+    
+        // Eliminar la derivación
+        $derivacion->delete();
+    
+        // Redirigir a la ruta del expediente del alumno con RUN y DV
+        return redirect()->route('alumno.expediente', ['run' => $run, 'dv' => $dv])
+                         ->with('success', 'Derivación eliminada exitosamente.');
+    }
+    
 
 public function update(Request $request, $id)
 {
@@ -475,6 +492,87 @@ public function entrevistaApoderado($id, $tipo_entrevista, $citacion)
     // Retornar la vista, pasando la derivación, motivos, tipo de entrevista y la entrevista existente (si la hay)
     return view('entrevistas.entrevista-apoderado', compact('derivacion', 'motivos', 'tipo_entrevista', 'entrevista', 'citacionId'));
 }
+
+public function citacionApoderado($tipo_entrevista, $citacionId)
+{
+    // Registrar el inicio de la función con los parámetros de entrada
+    Log::info('Función citacionApoderado invocada', [
+        'tipo_entrevista' => $tipo_entrevista,
+        'citacionId' => $citacionId
+    ]);
+
+    // Obtener la citación desde la base de datos usando el ID
+    $citacion = Citacion::find($citacionId);
+    Log::info('Citación obtenida', ['citacion' => $citacion]);
+
+    // Verificar si se encontró la citación
+    if (!$citacion) {
+        // Si no se encuentra la citación, registrar un error y redirigir
+        Log::error('Citación no encontrada', ['citacionId' => $citacionId]);
+        return redirect()->route('error')->with('message', 'Citación no encontrada');
+    }
+
+    // Continuar con la búsqueda del colaborador
+    Log::info('Buscando colaborador...');
+    $colaborador = User::where('user_id', $citacion->colaborador)->first();
+    Log::info('Colaborador encontrado', ['colaborador' => $colaborador]);
+
+    // Asignar el nombre completo del colaborador a la citación
+    if ($colaborador) {
+        $citacion->colaborador_nombre = $colaborador->first_name . ' ' . $colaborador->last_name;
+    } else {
+        $citacion->colaborador_nombre = 'Desconocido';
+        Log::warning('No se encontró el colaborador', ['colaborador_id' => $citacion->colaborador]);
+    }
+    Log::info('Nombre del colaborador asignado', ['colaborador_nombre' => $citacion->colaborador_nombre]);
+
+    // Obtener los motivos de entrevista
+    Log::info('Obteniendo los motivos de entrevista...');
+    $motivos = MotivoEntrevista::all();
+    Log::info('Motivos de entrevista obtenidos', ['motivos' => $motivos]);
+
+    // Obtener el run del estudiante desde la citación
+    $runEstudiante = $citacion->run;
+    Log::info('Run del estudiante', ['runEstudiante' => $runEstudiante]);
+    
+    // Buscar la matrícula asociada al run del estudiante
+    Log::info('Buscando matrícula para el run del estudiante...');
+    $matricula = Matricula::where('run', $runEstudiante)->first();
+    Log::info('Matrícula encontrada', ['matricula' => $matricula]);
+    
+    // Verificar si la matrícula contiene el campo 'desc_grado'
+    if ($matricula) {
+        Log::info('Verificando campo desc_grado', ['desc_grado' => $matricula->desc_grado]);
+    
+        // Asignar el curso si 'desc_grado' tiene un valor
+        if (!empty($matricula->desc_grado)) {
+            $citacion->curso = $matricula->desc_grado;  // Asignamos el curso de la matrícula
+            Log::info('Curso asignado', ['curso' => $citacion->curso]);
+        } else {
+            $citacion->curso = 'Curso no disponible';  // Si 'desc_grado' está vacío o no se encuentra
+            Log::warning('Campo desc_grado vacío, asignando valor por defecto', ['curso' => $citacion->curso]);
+        }
+    } else {
+        $citacion->curso = 'Curso no encontrado';  // Si no se encuentra la matrícula
+        Log::warning('No se encontró la matrícula, asignando curso por defecto', ['curso' => $citacion->curso]);
+    }
+    
+    // Log final con la información del curso asignado
+    Log::info('Información final de la citación', ['citacion' => $citacion]);
+    
+    // Retornar la vista, pasando la citación, motivos, tipo de entrevista y citacionId
+    Log::info('Retornando la vista', [
+        'citacion' => $citacion,
+        'motivos' => $motivos,
+        'tipo_entrevista' => $tipo_entrevista,
+        'citacionId' => $citacionId
+    ]);
+
+    return view('entrevistas.citacion-apoderado', compact('citacion', 'motivos', 'tipo_entrevista', 'citacionId'));
+}
+
+
+
 
 public function entrevistaCompromiso($id, $tipo_entrevista, $citacion)
 {

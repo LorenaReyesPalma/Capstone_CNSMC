@@ -22,4 +22,12 @@ class Curso extends Model
 
     // Indicar que el modelo usa las columnas de timestamps
     public $timestamps = false;
+
+    // app/Models/Curso.php
+    // Relación muchos a muchos con el modelo User
+    public function profesores()
+    {
+        return $this->belongsToMany(User::class, 'curso_user', 'curso_id', 'user_id');
+    }
+
 }

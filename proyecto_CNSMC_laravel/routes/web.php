@@ -11,6 +11,8 @@ use App\Http\Controllers\CursoController;
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\DerivacionController;
 use App\Http\Controllers\CitacionController;
+use App\Http\Controllers\MatriculaController;
+
 use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\EntrevistaController;
 
@@ -53,11 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/equipo-directivo/list-users', [EquipoDirectivoController::class, 'listUsers'])->name('list-users');
     Route::get('/equipo-directivo/edit-user/{user_id}', [EquipoDirectivoController::class, 'editUser'])->name('edit-user');
     Route::put('/equipo-directivo/update-user/{user_id}', [EquipoDirectivoController::class, 'updateUser'])->name('update-user');
-    Route::delete('/equipo-directivo/delete-user/{user_id}', [EquipoDirectivoController::class, 'deleteUser'])->name('delete-user');
+    Route::delete('/equipo-directivo/d  elete-user/{user_id}', [EquipoDirectivoController::class, 'deleteUser'])->name('delete-user');
 
     // Rutas para mostrar alumnos por curso
-    Route::get('buscar-alumnos', [CursoController::class, 'index'])->name('curso.index');
-    Route::post('/buscar-alumnos/buscar', [CursoController::class, 'buscarAlumnos'])->name('curso.buscar');
+    Route::get('/buscar-alumnos', [CursoController::class, 'index'])->name('curso.index');
+    Route::get('/buscar-alumnos/buscar', [CursoController::class, 'buscarAlumnos'])->name('curso.buscar');
 
     // Rutas para los expedientes de alumnos
     Route::get('alumno/expediente/{run}/{dv}', [AlumnoController::class, 'verExpediente'])->name('alumno.expediente');
@@ -84,6 +86,7 @@ Route::middleware('auth')->group(function () {
     // citaciones
     Route::post('/derivaciones/derivaciones/{id}/citacion', [CitacionController::class, 'store'])->name('citaciones.store');
     Route::delete('/citacion/cancelar/{id}', [DerivacionController::class, 'cancelarCitacion'])->name('citacion.cancelar');
+    Route::get('buscarAlumnos2', [CitacionController::class, 'buscarAlumnos2'])->name('buscarAlumnos2');
 
     // entrvista alumno
     // Route::get('/entrevistas/{id}/entrevista-alumno', [DerivacionController::class, 'entrevistaAlumno'])->name('entrevistas.entrevistaAlumno');
@@ -91,6 +94,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/entrevistas/{id}/entrevista-alumno/{tipo_entrevista}/{citacion}', [DerivacionController::class, 'entrevistaAlumno'])->name('entrevistas.entrevistaAlumno');
     Route::get('/entrevistas/{id}/entrevista-apoderado/{tipo_entrevista}/{citacion}', [DerivacionController::class, 'entrevistaApoderado'])->name('entrevistas.entrevistaApoderado');
     Route::get('/entrevistas/{id}/entrevista-compromiso/{tipo_entrevista}/{citacion}', [DerivacionController::class, 'entrevistaCompromiso'])->name('entrevistas.entrevistaCompromiso');
+    Route::get('/entrevistas/citacion-apoderado/{tipo_entrevista}/{citacion}', [DerivacionController::class, 'citacionApoderado'])->name('entrevistas.citacionApoderado');
     Route::delete('/entrevistas/{id}', [EntrevistaController::class, 'destroy'])->name('entrevista.destroy');
 
 
@@ -103,19 +107,36 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/citaciones/citacion', [CitacionController::class, 'citacionShow'])->name('citacionShow');
 
-
-    Route::get('/convivencia-escolar-profile', [ConvivenciaEscolarController::class, 'index'])->name('convivencia-escolar.profile');
-    Route::get('/profesores-jefes-profile', [ProfesoresJefesController::class, 'index'])->name('profesores-jefes.profile');
-    Route::get('/profesores-asignatura-profile', [ProfesoresAsignaturaController::class, 'index'])->name('profesores-asignatura.profile');
+    // Route::get('/profesores-jefes-profile', [ProfesoresJefesController::class, 'index'])->name('profesores-jefes.profile');
     Route::get('/pie-profile', [PieController::class, 'index'])->name('pie.profile');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-
-      // Rutas para Profesor Jefe
-   
-      Route::get('/profesores-jefes/profe-jefeindex', [ProfesoresJefesController::class, 'index'])->name('profesores-jefe.profe-jefeindex');
-      Route::post('/profejefe/derivacion/store', [ProfesoresJefesController::class, 'store'])->name('profejefe.derivacion.store');
-      Route::get('/profejefe/derivacion/{id}', [ProfesoresJefesController::class, 'show'])->name('profejefe.derivacion.show');
+    // Ruta para obtener citaciones (para mostrar en el calendario)
+    Route::get('/citaciones/obtener', [CitacionController::class, 'obtenerCitaciones'])->name('citaciones.obtener');
+    Route::post('/citaciones/guardar', [CitacionController::class, 'guardarCitacion'])->name('citaciones.guardar');
   
+    // Rutas para Profesor Jefe
+  
+    Route::post('/profejefe/derivacion/store', [ProfesoresJefesController::class, 'store'])->name('profejefe.derivacion.store');
+    Route::get('/profejefe/derivacion/{id}', [ProfesoresJefesController::class, 'show'])->name('profejefe.derivacion.show');
+
+    Route::get('/profesores-jefes/profe-jefeindex', [ProfesoresJefesController::class, 'index'])->name('profesores-jefes.profe-jefeindex');
+    // profesor-asignaturas
+    Route::get('/profesores-asignatura/profe-asignatura-index', [ProfesoresAsignaturaController::class, 'index'])->name('profesores-asignatura.profe-asignatura-index');
+    // PIE
+    Route::get('/pie/pie-index', [PieController::class, 'index'])->name('pie.pie-index');
+    // convivencia escolar
+    Route::get('/convivencia/convivencia-index', [ConvivenciaEscolarController::class, 'index'])->name('convivencia.convivencia-index');
+    Route::put('/derivaciones/aceptar/{id}', [ConvivenciaEscolarController::class, 'aceptarDerivacion'])->name('derivaciones.aceptar');
+
+    // asignar curso
+  
+    Route::post('/asignar-profesor-curso', [CursoController::class, 'asignarProfesorCurso'])->name('asignar.profesor.curso');
+    Route::post('/quitar-profesor-curso', [CursoController::class, 'quitarProfesorCurso'])->name('quitar.profesor.curso');
+
+    // carga de bbdd
+
+    Route::post('/cargar-matricula', [MatriculaController::class, 'cargarArchivo'])->name('matricula.cargar');
+
+
 });

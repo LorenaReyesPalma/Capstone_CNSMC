@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Entrevista;
 use App\Models\Derivacion;
+use App\Models\Citacion;
+
 use App\Models\MotivoEntrevista;
 use Illuminate\Support\Facades\Log;
 
@@ -51,6 +53,11 @@ class EntrevistaController extends Controller
         // Log de los datos del request antes de validación
         Log::info('Datos del request antes de validación:', $request->all());
 
+        $id = $request->get('id');
+            if ($id === 'null') {
+            $id = null;
+                }
+
         // Validar los campos del formulario
         $request->validate([
             'nombre_entrevistado' => 'required|string|max:255',
@@ -61,7 +68,7 @@ class EntrevistaController extends Controller
             'desarrollo_entrevista' => 'required|string',
             'acuerdos.*' => 'required|string|max:255',
             'plazos.*' => 'required|date',
-            'derivacion_id' => 'required|exists:derivacions,id',
+            'derivacion_id' => 'nullable|exists:derivacions,id',  // Hacer que sea nulleable
             'tipo_entrevista' => 'required|string|max:255',
             'citacionId' => 'required|string',
 
@@ -101,7 +108,7 @@ class EntrevistaController extends Controller
         // Crear una nueva instancia de la entrevista
         $entrevista = new Entrevista();
         $entrevista->fecha = now(); // O establece una fecha específica si es necesario
-        $entrevista->derivacion_id = $request->derivacion_id; // Recuperamos el derivacion_id
+        $entrevista->derivacion_id = $request->derivacion_id ?? null; // Asignar null si no se proporciona un valor
         $entrevista->tipo_entrevista = $request->tipo_entrevista; // Recuperamos el tipo_entrevista
         $entrevista->nombre_entrevistado = strtoupper(trim($request['nombre_entrevistado']));
         $entrevista->curso = strtoupper(trim($request['curso']));
@@ -127,8 +134,18 @@ class EntrevistaController extends Controller
         // Guardar la entrevista en la base de datos
         $entrevista->save();
 
+                // Actualizar la citación a estado 2
+        $citacion = Citacion::find($request->citacionId);
+        if ($citacion) {
+            $citacion->estado = 2; // Cambiar el estado de la citación a 2
+            $citacion->save();
+            Log::info('Citación actualizada a estado 2.', ['citacion_id' => $citacion->id]);
+        } else {
+            Log::warning('No se encontró la citación para actualizar a estado 2.', ['citacion_id' => $request->citacionId]);
+        }
+
         // Redireccionar a la página deseada con un mensaje de éxito
-        return back()->with(['success' => 'Entrevista guardada con éxito.']);
+        return redirect()->route('citacionShow')->with(['success' => 'Entrevista guardada con éxito.']);
     }
 
     public function destroy($id)

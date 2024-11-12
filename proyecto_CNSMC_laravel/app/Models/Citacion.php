@@ -14,7 +14,8 @@ class Citacion extends Model
 
 
     protected $fillable = [
-        'derivacion_id', 'tipo_accion', 'fecha_citacion', 'hora_citacion', 'observaciones','colaborador','estado'
+        'derivacion_id', 'tipo_accion', 'fecha_citacion', 'hora_citacion', 'observaciones','colaborador','estado',   'run',
+        'digito_ver'
     ];
 
     public function derivacion()
