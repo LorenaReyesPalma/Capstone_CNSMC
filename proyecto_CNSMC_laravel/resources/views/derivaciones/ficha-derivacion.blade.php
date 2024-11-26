@@ -2,7 +2,39 @@
 
 @section('content')
 <div class="container">
-    <h3>Ficha Derivación</h3>
+
+    <div class="row align-items-center">
+        <!-- Columna para el título -->
+        <div class="col-6">
+            <h3>Ficha Derivación</h3>
+        </div>
+
+        <!-- Columna para el botón -->
+        <div class="col-6 text-end">
+            @if (auth()->user()->id_category == 2)
+            @if ($derivacion->estado_id == 1)
+            <form action="{{ route('derivaciones.cambiarEstado', ['id' => $derivacion->id, 'nuevoEstado' => 2]) }}"
+                method="POST" style="display:inline;">
+                @csrf
+                @method('PUT')
+                <button type="submit" class="btn btn-primary">Aceptar</button>
+            </form>
+            @elseif ($derivacion->estado_id == 2)
+            <form action="{{ route('derivaciones.cambiarEstado', ['id' => $derivacion->id, 'nuevoEstado' => 3]) }}"
+                method="POST" style="display:inline;">
+                @csrf
+                @method('PUT')
+                <button type="submit" class="btn btn-success">Finalizar</button>
+            </form>
+            @elseif ($derivacion->estado_id == 3)
+            <!-- Botón que indica que el estado es "Finalizada" -->
+            <button type="button" class="btn btn-secondary" disabled>Finalizada</button>
+            @endif
+            @endif
+        </div>
+
+    </div>
+
 
     <!-- Grilla para los datos del estudiante y los datos de la derivación en un solo contenedor -->
     <div class="card">
@@ -34,7 +66,7 @@
                     </p>
                     <p><strong>Programa de Retención:</strong> {{ $derivacion->programa_retencion ? 'Sí' : 'No' }}</p>
                     <p><strong>Colaborador que deriva:</strong> {{ $derivacion->colaborador_nombre }}</p>
-                    <p><strong>Colaborador que Acepta:</strong> {{ $derivacion->colaborador_nombre }}</p>
+                    <p><strong>Colaborador que Acepta:</strong> {{ $derivacion->colaborador_acepta_nombre  }}</p>
                     <p><strong>Estado derivación:</strong>
                         @switch($derivacion->estado_id)
                         @case(1)
@@ -270,21 +302,22 @@
                             <td style="width: 25%;">{{ $entrevista->nombre_entrevistado }}</td>
                             <td>{{ $entrevista->entrevistador }}</td>
                             <td>{{ $entrevista->motivos_entrevista }}</td>
-                            <td> <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#modalEntrevista{{ $entrevista->id }}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <form action="{{ route('entrevista.destroy', $entrevista->id) }}" method="POST"
-                                    style="display: inline;"
-                                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrevista?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i> <!-- Ícono de eliminar -->
-                                    </button>
-                                </form>
+                            <td class="d-flex justify-content-start align-items-center">
+    <!-- Botón de ver (modal) -->
+    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEntrevista{{ $entrevista->id }}">
+        <i class="fas fa-eye"></i>
+    </button>
 
-                            </td>
+    <!-- Formulario para eliminar -->
+    <form action="{{ route('entrevista.destroy', $entrevista->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrevista?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-danger btn-sm ms-2"> <!-- ms-2 agrega un margen entre los botones -->
+            <i class="fas fa-trash"></i> <!-- Ícono de eliminar -->
+        </button>
+    </form>
+</td>
+
                         </tr>
 
                         <!-- Modal para ver la ficha completa de la entrevista -->
@@ -433,10 +466,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                      <!-- Alerta para mostrar si ya existen citaciones -->
+                <div id="alerta-citaciones"></div>
+                
                     <!-- Formulario para crear citación -->
                     <form action="{{ route('citaciones.store', $derivacion->id) }}" method="POST">
                         @csrf
+                        
                         <div class="row">
+                        <input id="runInput" type="hidden" name="run" value="{{ $derivacion->run }}">
+
+                            <input type="hidden" name="derivacion_id" value="{{ $derivacion->id }}">
+
                             <div class="col-md-4">
                                 <label for="tipo_accion">Tipo de Acción</label>
                                 <select name="tipo_accion" class="form-control" required>
@@ -447,7 +488,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="fecha_citacion">Fecha de Citación</label>
-                                <input type="date" name="fecha_citacion" class="form-control" required>
+                                <input id="fecha_citacion" type="date" name="fecha_citacion" min="{{ date('Y-m-d') }}" class="form-control" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="hora_citacion">Hora de Citación</label>
@@ -683,4 +724,102 @@
 
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOMContentLoaded disparado'); // Verifica que el evento se dispare correctamente
+
+    // Usar los IDs correctos
+    const fechaInput = document.getElementById('fecha_citacion');
+    const alerta = document.getElementById('alerta-citaciones'); // Contenedor de alerta
+    const runInput = document.getElementById('runInput'); // Contenedor de alerta
+
+    console.log('llegue aca'); // Corregido el paréntesis que faltaba
+
+    // Verificar que los elementos existen antes de agregar eventos
+    if (fechaInput && alerta && runInput) {
+        console.log('Elementos encontrados:', { fechaInput, alerta, runInput });
+
+        // Función para verificar las citaciones
+        const verificarCitaciones = () => {
+            const fecha = fechaInput.value;
+            const run = runInput.value;
+
+            console.log('Verificando citaciones:', 'RUN:', run, 'Fecha:', fecha); // Depuración de valores
+
+            // Verificar si ambos campos están llenos
+            if (fecha && run) {
+                const url = `https://cmvapp.cl/proyecto_capston_laravel/public/check-citaciones?run=${run}&fecha=${fecha}`;
+
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Respuesta JSON:', data); // Depuración de respuesta del servidor
+
+                    if (data.exists) {
+        // Mostrar alerta si hay citaciones
+        let alertMessage = `
+            <div class="alert alert-warning">
+                ${data.message}<br>`;
+
+        // Itera sobre las citaciones y muestra sus detalles
+        data.data.forEach(citacion => {
+            alertMessage += `
+                <strong>Hora:</strong> ${citacion.hora_citacion} - <strong>Colaborador:</strong> ${citacion.colaborador} <br>
+                <strong>Tipo de Acción:</strong> ${citacion.tipo_accion} <br>
+            `;
+        });
+
+        alertMessage += `</div>`;
+
+        alerta.innerHTML = alertMessage;
+    } else {
+        // Limpiar alerta si no hay citaciones
+        alerta.innerHTML = '';
+    }
+                })
+                .catch(error => {
+                    console.error('Error en fetch:', error);
+                    // En caso de error en la verificación, mostrar mensaje de error
+                    alerta.innerHTML = `
+                        <div class="alert alert-danger">
+                            Hubo un error al verificar las citaciones. Intenta nuevamente.
+                        </div>
+                    `;
+                });
+            } else {
+                // Limpiar alerta si los campos no están completos
+                alerta.innerHTML = `
+                    <div class="alert alert-danger">
+                        Por favor, complete los campos de RUN y Fecha.
+                    </div>
+                `;
+            }
+        };
+
+        // Agregar evento de cambio para el campo de fecha
+        fechaInput.addEventListener('change', function () {
+            // Ejecutar la verificación cada vez que cambia la fecha
+            verificarCitaciones();
+        });
+
+        // Agregar evento de input para el campo de RUN, para verificar cuando cambia el RUN
+        runInput.addEventListener('input', function () {
+            // Ejecutar la verificación cada vez que cambia el RUN
+            verificarCitaciones();
+        });
+        
+    } else {
+        console.error('No se encontraron los elementos necesarios en el DOM.');
+    }
+});
+
+
+</script>
+
 @endsection

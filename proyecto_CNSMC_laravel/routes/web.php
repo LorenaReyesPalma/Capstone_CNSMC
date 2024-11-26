@@ -12,6 +12,7 @@ use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\DerivacionController;
 use App\Http\Controllers\CitacionController;
 use App\Http\Controllers\MatriculaController;
+use App\Http\Controllers\EstadisticaController;
 
 use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\EntrevistaController;
@@ -55,10 +56,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/equipo-directivo/list-users', [EquipoDirectivoController::class, 'listUsers'])->name('list-users');
     Route::get('/equipo-directivo/edit-user/{user_id}', [EquipoDirectivoController::class, 'editUser'])->name('edit-user');
     Route::put('/equipo-directivo/update-user/{user_id}', [EquipoDirectivoController::class, 'updateUser'])->name('update-user');
-    Route::delete('/equipo-directivo/d  elete-user/{user_id}', [EquipoDirectivoController::class, 'deleteUser'])->name('delete-user');
+    Route::delete('/equipo-directivo/delete-user/{user_id}', [EquipoDirectivoController::class, 'deleteUser'])->name('delete-user');
 
     // Rutas para mostrar alumnos por curso
     Route::get('/buscar-alumnos', [CursoController::class, 'index'])->name('curso.index');
+    Route::get('/buscar-alumnos/indexDos', [CursoController::class, 'indexDos'])->name('curso.indexDos');
     Route::get('/buscar-alumnos/buscar', [CursoController::class, 'buscarAlumnos'])->name('curso.buscar');
 
     // Rutas para los expedientes de alumnos
@@ -69,7 +71,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/comunas/{codigoRegion}', [AlumnoController::class, 'cargarComunas']);
 
     // derivaciones
-    Route::get('/derivaciones/derivacion/{run}/{dv}', [DerivacionController::class, 'create'])->name('derivacion.create');
+    Route::get('/derivaciones/derivacion-crear/{run}/{dv}', [DerivacionController::class, 'create'])->name('derivaciones.derivacion-crear');
     Route::post('/derivaciones/derivacion/store', [DerivacionController::class, 'store'])->name('derivacion.store');
     Route::get('/derivaciones/derivacion/{id}', [DerivacionController::class, 'show'])->name('derivacion.show');
     
@@ -80,6 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/derivaciones/derivacion/{id}', [DerivacionController::class, 'destroy'])->name('derivacion.destroy');
     // Ruta para listar todas las derivaciones
     Route::get('/derivaciones/derivaciones-estado', [DerivacionController::class, 'listarDerivaciones'])->name('derivaciones.estado');
+    Route::put('/derivaciones/{id}/estado/{nuevoEstado}', [DerivacionController::class, 'cambiarEstado'])->name('derivaciones.cambiarEstado');
 
 
         
@@ -114,7 +117,11 @@ Route::middleware('auth')->group(function () {
     // Ruta para obtener citaciones (para mostrar en el calendario)
     Route::get('/citaciones/obtener', [CitacionController::class, 'obtenerCitaciones'])->name('citaciones.obtener');
     Route::post('/citaciones/guardar', [CitacionController::class, 'guardarCitacion'])->name('citaciones.guardar');
-  
+ 
+    Route::get('/check-citaciones', [CitacionController::class, 'checkCitaciones']);
+
+
+    
     // Rutas para Profesor Jefe
   
     Route::post('/profejefe/derivacion/store', [ProfesoresJefesController::class, 'store'])->name('profejefe.derivacion.store');
@@ -138,5 +145,21 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/cargar-matricula', [MatriculaController::class, 'cargarArchivo'])->name('matricula.cargar');
 
+    //estadisticas
+    Route::get('/estadisticas', [EstadisticaController::class, 'estadisticas'])->name('estadisticas');
+    Route::get('/estadisticas/getDerivaciones', [EstadisticaController::class, 'getDerivaciones']);
+    Route::get('/estadisticas/getDerivacionesEstado', [EstadisticaController::class, 'getDerivacionesEstado']);
+    Route::get('/estadisticas/getDatosGraficosCombinados', [EstadisticaController::class, 'getDatosGraficosCombinados']);
+    Route::get('/estadisticas/getDatosGraficos', [EstadisticaController::class, 'getDatosGraficos']);
+    Route::get('/estadisticas/getDatosGraficosFamiliar', [EstadisticaController::class, 'getDatosGraficosFamiliar']);
+    Route::get('/estadisticas/getDatosGraficosSocial', [EstadisticaController::class, 'getDatosGraficosSocial']);
+    Route::get('/estadisticas/obtenerCuentaProgramas', [EstadisticaController::class, 'obtenerCuentaProgramas']);
+    Route::get('/estadisticas/obtenerEstadoDerivaciones', [EstadisticaController::class, 'obtenerEstadoDerivaciones'])->name('obtenerEstadoDerivaciones');
+    Route::get('/estadisticas/exportar-estadisticas', [EstadisticaController::class, 'exportarExcel']);
+    Route::get('/estadisticas/promedio-cambio-estado-mes',  [EstadisticaController::class,  'promedioCambioEstadoMes']);
 
+
+    Route::get('/promedio-cambio-estado',  [DerivacionController::class,  'promedioCambioEstado']);
+
+    
 });

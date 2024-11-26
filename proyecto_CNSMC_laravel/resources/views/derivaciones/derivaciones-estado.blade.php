@@ -51,8 +51,8 @@
     @if($derivaciones->isEmpty())
     <p>No hay derivaciones asociadas</p>
     @else
-    <div class="table-responsive">
-        <table class="table table-sm">
+    <div class="table-responsive "  style="max-height: 60vh; overflow-y: auto;" >
+        <table class="table table-hover table-striped table-sm" >
             <thead>
                 <tr>
                     <th>Fecha</th>
@@ -98,22 +98,22 @@
                         @endswitch
                     </td>
                     <td>
-                        <div class="btn-group" role="group" aria-label="Acciones">
-                            <a href="{{ route('derivacion.show', $derivacion->id) }}" class="btn btn-icon-only"
-                                title="Ver">
-                                <i class="fas fa-eye text-info fa-1x"></i> <!-- Icono más grande -->
-                            </a>
-                            <form action="{{ route('derivacion.destroy', $derivacion->id) }}" method="POST"
-                                style="display:inline-block;">
+                    <div class="btn-group" role="group" aria-label="Acciones">
+                        <a href="{{ route('derivacion.show', $derivacion->id) }}" class="btn btn-icon-only" title="Ver">
+                            <i class="fas fa-eye text-info fa-1x"></i> <!-- Icono más grande -->
+                        </a>
+
+                        @if (auth()->user()->id_category == 2 || in_array(auth()->user()->id_category, [1,3, 4, 5]) && $derivacion->estado_id == 1)
+                            <form action="{{ route('derivacion.destroy', $derivacion->id) }}" method="POST" style="display:inline-block;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-icon-only"
-                                    onclick="return confirm('¿Está seguro de eliminar esta derivación?')"
-                                    title="Eliminar">
+                                <button type="submit" class="btn btn-icon-only" onclick="return confirm('¿Está seguro de eliminar esta derivación?')" title="Eliminar">
                                     <i class="fas fa-trash text-danger fa-1x"></i> <!-- Icono más grande -->
                                 </button>
                             </form>
-                        </div>
+                        @endif
+                    </div>
+
                         @if($diasDiferencia > 3 && $derivacion->estado_id == 1)
                         <span class="text-danger">
                             <i class="fas fa-exclamation-triangle"></i> Atrasada

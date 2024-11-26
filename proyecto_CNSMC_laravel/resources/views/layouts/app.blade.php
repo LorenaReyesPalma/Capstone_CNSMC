@@ -37,13 +37,11 @@
                     style="color: white; background-color: transparent; border: none;" data-toggle="collapse"
                     data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
                     aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon" style="
-            background-image: url('data:image/svg+xml,%3Csvg xmlns%3D%27http://www.w3.org/2000/svg%27 viewBox%3D%270 0 30 30%27%3E%3Cpath stroke%3D%27rgba%28255,%20255,%20255,%201%29%27 stroke-width%3D%272%27 d%3D%27M4 7h22M4 15h22M4 23h22%27/%3E%3C/svg%3E');
-            "></span>
+                    <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml,%3Csvg xmlns%3D%27http://www.w3.org/2000/svg%27 viewBox%3D%270 0 30 30%27%3E%3Cpath stroke%3D%27rgba%28255,%20255,%20255,%201%29%27 stroke-width%3D%272%27 d%3D%27M4 7h22M4 15h22M4 23h22%27/%3E%3C/svg%3E');"></span>
                 </button>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav mr-auto">
+                <div class="collapse navbar-collapse d-flex justify-content-between" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
 
 
                         @auth
@@ -66,7 +64,7 @@
                             </a>
                         </li>
                         <li class="nav-item d-lg-none">
-                            <a class="nav-link" href="#" style="color: white;">
+                            <a class="nav-link" href="{{ route('estadisticas') }}" style="color: white;">
                                 <i class="fas fa-chart-bar"></i> Estadísticas
                             </a>
                         </li>
@@ -77,7 +75,7 @@
                                 href="{{ route('convivencia.convivencia-index') }}">Convivencia Escolar</a>
                         </li>
                         <li class="nav-item d-lg-none">
-                            <a class="nav-link" href="#" style="color: white;">
+                            <a class="nav-link" href="{{ route('estadisticas') }}" style="color: white;">
                                 <i class="fas fa-chart-bar"></i> Estadísticas
                             </a>
                         </li>
@@ -123,7 +121,7 @@
 
                     </ul>
                     <ul class="navbar-nav ml-auto">
-                        @auth
+                    @auth
                         <li class="nav-item">
                             <form action="{{ route('logout') }}" method="POST" class="form-inline">
                                 @csrf
@@ -201,17 +199,18 @@
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="#" style="color: #002A45;">
+                                <a class="nav-link" href="{{ route('estadisticas') }}" style="color: #002A45;">
                                     <i class="fas fa-chart-bar"></i> Estadísticas
                                 </a>
                             </li>
 
                             @elseif (Auth::user()->id_category == 2) {{-- Convivencia Escolar --}}
                             <li class="nav-item">
-                                <a class="nav-link" href="#" style="color: #002A45;">
+                                <a class="nav-link" href="{{ route('estadisticas') }}" style="color: #002A45;">
                                     <i class="fas fa-chart-bar"></i> Estadísticas
                                 </a>
                             </li>
+                          
 
                             @endif
                             @endauth
@@ -224,39 +223,38 @@
 
                 <!-- Contenido principal -->
                 <main class="col-md-9 ml-sm-auto col-lg-10 mt-4  d-flex flex-column">
-                    <div class="flex-grow-1">
+                <div class="flex-grow-1">
+    <!-- Mostrar alertas arriba del contenido -->
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show shadow-lg rounded-3" role="alert" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
 
-                        @yield('content')
+    @if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show shadow-lg rounded-3" role="alert" style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+        {{ session('success') }}
+        <button type="button" class="close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
 
-                        @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                        @endif
+    @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show shadow-lg rounded-3" role="alert" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+        {{ session('error') }}
+        <button type="button" class="close btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    <!-- Contenido principal -->
+    @yield('content')
+</div>
 
 
-                        @if (session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        @endif
-
-                        @if (session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ session('error') }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        @endif
-                    </div>
                     <footer class="bg-light text-center" style="margin-top: auto;">
                         <div class="container">
                             <p>&copy; {{ date('Y') }} Derivaciones Escolares. Todos los derechos reservados.</p>

@@ -74,12 +74,14 @@
                             </div>
                         </div>
 
+
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="adulto_responsable">Adulto Responsable:</label>
                                     <input type="text" name="adulto_responsable" id="adulto_responsable"
-                                        class="form-control" required>
+                                        class="form-control" value="{{ $adulto }}"required>
                                 </div>
                             </div>
                             <div class="col-md-6">

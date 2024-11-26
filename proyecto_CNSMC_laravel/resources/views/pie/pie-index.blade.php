@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Convivencia Escolar')
+@section('title', 'PIE')
 
 @section('content')
 <div class="container mt-1">
-    <h3 class="mb-3 text-start">Perfil Convivencia Escolar</h3>
-    <p class="text-start" style="font-size: 0.9rem;">Bienvenido equipo de Convivencia Escolar. Desde aquí puedes
+    <h3 class="mb-3 text-start">Perfil Programa Integracion Escolar</h3>
+    <p class="text-start" style="font-size: 0.9rem;">Bienvenido equipo PIE. Desde aquí puedes
         gestionar las derivaciones, citaciones y consultar las estadísticas.</p>
 </div>
 
-<div class="container mt-4">
+<div class="container mt-2">
     <div class="row">
         <!-- Tabla de Derivaciones Pendientes -->
         <div class="col-md-8">
@@ -17,8 +17,8 @@
                 <div class="card-body">
                     <h5 class="card-title text-center">Derivaciones Pendientes</h5>
 
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-hover table-striped table-sm">
+                    <div class="table-responsive" style="max-height: 300px; min-height:300px;  overflow-y: auto;">
+                        <table class="table table-hover table-striped table-sm" >
                             <thead class="thead-light">
                                 <tr>
                                     <th style="font-size: 0.85rem;">Nombre Estudiante</th>
@@ -113,11 +113,7 @@
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
 
-                                                <!-- Formulario para aceptar la derivación -->
-                                                <form action="{{ route('derivaciones.aceptar', $derivacion->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas aceptar esta derivación?');">
-                                                    @csrf
-                                                    @method('PUT')
-                                                </form>
+                                       
                                             </div>
                                         </div>
                                     </div>
@@ -128,24 +124,139 @@
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </div>
         </div>
 
         <!-- Gráfico de Derivaciones -->
-        <div class="col-md-4 card p-4 shadow-sm mb-2" style="background-color: rgba(236, 241, 245, 0.8);">
-            <div class="container mt-1">
-                <h5 class="text-center">Derivaciones Mes Actual: {{$derivacionesMesActual}}</h5>
+        <div class="col-md-3 card shadow-sm ">
+
+
+            <!-- Botón para abrir el modal -->
+            <button class="btn btn-warning w-100 p-0 mt-2" data-toggle="modal" data-target="#derivacionesModal" style="background-color: #002A45; border: none;">
+                <div class="card h-100" style="background-color: #002A45; border: none;">
+                    <div class="card-body text-center text-white">
+                        <!-- Ícono de Font Awesome -->
+                        <div class="mb-3">
+                            <i class="fas fa-eye" style="font-size: 2rem; color: white;"></i>
+                        </div>
+                        <h6 class="card-title fw-bold"> Derivaciones Aceptadas</h6>
+                        <p class="card-text" style="color: #d1e7ff;">Revisa y gestiona las derivaciones aceptadas.</p>
+                    </div>
+                </div>
+            </button>
+
+            <br>
+            <div>
+                <h5 class="text-center">Mes Actual: {{$derivacionesMesActual}}</h5>
                 
-                <canvas id="derivacionesChart" width="250" height="180"></canvas>
+                <canvas id="derivacionesChart" width="230" height="120"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+       
+@endsection
+
+<!-- Modal -->
+<div class="modal fade" id="derivacionesModal" tabindex="-1" role="dialog" aria-labelledby="derivacionesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="derivacionesModalLabel">Derivaciones Aceptadas</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+      
+                <!-- Tabla con derivaciones -->
+                <div class="card mt-3">
+                    @if($derivaciones->isEmpty())
+                        <p>No hay derivaciones asociadas</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th class="col-lg-2">Alumno</th>
+                                        <th class="col-lg-3">Motivo</th>
+                                        <th>Responsable</th>
+                                        <th>Estado</th>
+                                        <th>Acción</th> <!-- Columna de acción -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($derivaciones as $derivacion)
+                                    <tr>
+                                        <td>{{ $derivacion->fecha_derivacion }}</td>
+                                        <td>{{ $derivacion->nombre_estudiante }}</td>
+                                        <td class="col-lg-3" style="white-space: normal;">
+                                            {{ Str::limit(nl2br(e($derivacion->motivo_derivacion)), 100, '...') }}
+                                        </td>
+                                        <td>{{ $derivacion->colaborador_nombre }}</td>
+                                        <td>
+                                            @switch($derivacion->estado_id)
+                                                @case(1)
+                                                    <span class="dot yellow"></span> En espera
+                                                    @break
+                                                @case(2)
+                                                    <span class="dot green"></span> Aceptada
+                                                    @break
+                                                @case(3)
+                                                    <span class="dot red"></span> Finalizada
+                                                    @break
+                                                @default
+                                                    Desconocido
+                                            @endswitch
+                                        </td>
+                                        <td>
+                                            <!-- Botón de acción -->
+                                            <a href="{{ route('derivacion.show', $derivacion->id) }}" class="btn btn-primary btn-sm">
+                                                Ver Derivación
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+
+
+<style>
+.dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.green {
+    background-color: #28a745;
+}
+
+.yellow {
+    background-color: #ffc107;
+}
+
+.red {
+    background-color: #dc3545;
+}
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const ctx = document.getElementById('derivacionesChart').getContext('2d');
@@ -194,4 +305,3 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
-@endsection

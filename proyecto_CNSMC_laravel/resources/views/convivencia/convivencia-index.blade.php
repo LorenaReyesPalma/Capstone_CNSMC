@@ -9,7 +9,7 @@
         gestionar las derivaciones, citaciones y consultar las estadísticas.</p>
 </div>
 
-<div class="container mt-4">
+<div class="container mt-2">
     <div class="row">
         <!-- Tabla de Derivaciones Pendientes -->
         <div class="col-md-8">
@@ -17,7 +17,7 @@
                 <div class="card-body">
                     <h5 class="card-title text-center">Derivaciones Pendientes</h5>
 
-                    <div class="table-responsive" style="max-height: 400px; min-height:400px;  overflow-y: auto;">
+                    <div class="table-responsive" style="max-height: 300px; min-height:300px;  overflow-y: auto;">
                         <table class="table table-hover table-striped table-sm" >
                             <thead class="thead-light">
                                 <tr>
@@ -129,51 +129,46 @@
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </div>
         </div>
 
         <!-- Gráfico de Derivaciones -->
-        <div class="col-md-3 card p-2 shadow-sm ">
-        <div>
+        <div class="col-md-3 card shadow-sm ">
 
-<!-- Botón para abrir el modal -->
-<button class="btn btn-warning w-100 p-0 shadow-lg" data-toggle="modal" data-target="#derivacionesModal" style="background-color: #002A45; border: none;">
-    <div class="card h-100" style="background-color: #002A45; border: none;">
-        <div class="card-body text-center text-white">
-            <!-- Ícono de Font Awesome -->
-            <div class="mb-3">
-                <i class="fas fa-eye" style="font-size: 2rem; color: white;"></i>
-            </div>
-            <h6 class="card-title fw-bold"> Derivaciones Aceptadas</h6>
-            <p class="card-text" style="color: #d1e7ff;">Revisa y gestiona las derivaciones aceptadas.</p>
-        </div>
-    </div>
-</button>
 
-<br><br>
-</div>
+            <!-- Botón para abrir el modal -->
+            <button class="btn btn-warning w-100 p-0 mt-2" data-toggle="modal" data-target="#derivacionesModal" style="background-color: #002A45; border: none;">
+                <div class="card h-100" style="background-color: #002A45; border: none;">
+                    <div class="card-body text-center text-white">
+                        <!-- Ícono de Font Awesome -->
+                        <div class="mb-3">
+                            <i class="fas fa-eye" style="font-size: 2rem; color: white;"></i>
+                        </div>
+                        <h6 class="card-title fw-bold"> Derivaciones Aceptadas</h6>
+                        <p class="card-text" style="color: #d1e7ff;">Revisa y gestiona las derivaciones aceptadas.</p>
+                    </div>
+                </div>
+            </button>
+
+            <br>
             <div>
                 <h5 class="text-center">Mes Actual: {{$derivacionesMesActual}}</h5>
                 
-                <canvas id="derivacionesChart" width="260" height="150"></canvas>
+                <canvas id="derivacionesChart" width="230" height="120"></canvas>
             </div>
         </div>
-    </div>
 
-
-    <!-- Tarjeta de Citaciones Apoderado -->
-
-
-        <!-- Botón para abrir el modal -->
-       
     </div>
 </div>
+       
+@endsection
 
 <!-- Modal -->
 <div class="modal fade" id="derivacionesModal" tabindex="-1" role="dialog" aria-labelledby="derivacionesModalLabel" aria-hidden="true">
-<div class="modal-dialog modal-lg" role="document">
-<div class="modal-content">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="derivacionesModalLabel">Derivaciones Aceptadas</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -242,6 +237,7 @@
 </div>
 
 
+
 <style>
 .dot {
     height: 10px;
@@ -264,13 +260,8 @@
 }
 </style>
 
-</div>
-
-
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const ctx = document.getElementById('derivacionesChart').getContext('2d');
@@ -319,4 +310,3 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
-@endsection

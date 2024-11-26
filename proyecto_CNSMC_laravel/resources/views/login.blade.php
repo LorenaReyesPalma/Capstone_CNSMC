@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
 </head>
 <body>
-    <div class="container col-lg-5 col-md-6 col-sm-11 col-11 mt-5">
+    <div class="container col-lg-5 col-md-6 col-sm-11 col-11 mt-2">
         <h5 class="text-center">
             Colegio Nuestra Señora y Madre del Carmen
             <img src="{{ asset('images/logo.png') }}" alt="Logo" class="img-fluid" style="width: 50px; height: 50px;">

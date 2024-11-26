@@ -101,7 +101,7 @@
                 <div class="d-flex mb-2">
                     <input type="text" class="form-control me-2" name="acuerdos[]" placeholder="Ingrese un acuerdo"
                         required>
-                    <input type="date" class="form-control" name="plazos[]" required>
+                    <input type="date" class="form-control" name="plazos[]" required  min="{{ date('Y-m-d') }}" >
                 </div>
             </div>
             <button type="button" class="btn btn-secondary mt-2" id="add-acuerdo">Agregar Acuerdo</button>

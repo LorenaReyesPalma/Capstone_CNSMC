@@ -76,14 +76,17 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+
+      <div id="alerta-citaciones"></div>
+
         <form id="citacionForm" action="{{ route('citaciones.guardar') }}" method="POST">
           @csrf <!-- Protección contra CSRF -->
           <!-- Campos ocultos -->
-          <input  id="runInput" name="run" type="text">
-          <input id="digitoVerInput" name="digito_ver" type="text">
+          <input id="runInput" name="run" type="hidden">
+          <input id="digitoVerInput" name="digito_ver" type="hidden">
           
           <!-- Tipo de Acción (Opcional: Si debe mostrarse, agregar un campo) -->
-          <input id="tipo_accion" name="tipo_accion" value="Citacion Apoderado" type="text">
+          <input id="tipo_accion" name="tipo_accion" value="Citacion Apoderado" type="hidden">
 
           <!-- Fecha de la Citación -->
           <div class="mb-3">
@@ -321,7 +324,7 @@ $(document).ready(function() {
             $('#detalleColaborador').text(event.extendedProps.colaborador_nombre);
 
             let url = '#';
-            if (event.extendedProps.derivacion_id && event.extendedProps.citacion_id && event.extendedProps.tipo_accion) {
+            if (event.extendedProps.citacion_id && event.extendedProps.tipo_accion) {
                 switch (event.extendedProps.tipo_accion) {
                     case 'Entrevista Alumno':
                         url = `{{ route('entrevistas.entrevistaAlumno', ['id' => 'REPLACE_DERIVACION', 'tipo_entrevista' => 1, 'citacion' => 'REPLACE_CITACION']) }}`;
@@ -337,74 +340,284 @@ $(document).ready(function() {
                         break;
                 }
                 url = url.replace('REPLACE_DERIVACION', event.extendedProps.derivacion_id)
-                    .replace('REPLACE_CITACION', event.extendedProps.citacion_id);
+                         .replace('REPLACE_CITACION', event.extendedProps.citacion_id);
             }
-            $('#redirectButton').attr('href', url);
-            $('#detalleModal').modal('show');
+            $('#redirectButton').attr('href', url); // Establece la URL de redirección
+            $('#detalleModal').modal('show'); // Muestra el modal con detalles del evento
         }
     });
     calendar2.render();
 });
 
- // Buscando alumnos
- document.getElementById('searchForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Evita el envío del formulario
+//  // Buscando alumnos
+//  document.getElementById('searchForm').addEventListener('submit', function(e) {
+//         e.preventDefault(); // Evita el envío del formulario
 
-        const cursoSeleccionado = document.querySelector('select[name="cod_tipo_ensenanza"]').value;
-        const search = document.getElementById('searchInput').value;
+//         const cursoSeleccionado = document.querySelector('select[name="cod_tipo_ensenanza"]').value;
+//         const search = document.getElementById('searchInput').value;
 
-        // Prepara la URL de la solicitud con los parámetros
-        const url = new URL('{{ route("buscarAlumnos2") }}', window.location.origin);
-        const params = new URLSearchParams();
-        params.append('cod_tipo_ensenanza', cursoSeleccionado);
-        params.append('search', search);
+//         // Prepara la URL de la solicitud con los parámetros
+//         const url = new URL('{{ route("buscarAlumnos2") }}', window.location.origin);
+//         const params = new URLSearchParams();
+//         params.append('cod_tipo_ensenanza', cursoSeleccionado);
+//         params.append('search', search);
 
-        // Realiza la solicitud fetch
-        fetch(url + '?' + params.toString())
-            .then(response => response.json())
-            .then(data => {
-                const alumnos = data.alumnos;
-                let optionsHtml = '<option value="">-- Selecciona un alumno --</option>';
+//         // Realiza la solicitud fetch
+//         fetch(url + '?' + params.toString())
+//             .then(response => response.json())
+//             .then(data => {
+//                 const alumnos = data.alumnos;
+//                 let optionsHtml = '<option value="">-- Selecciona un alumno --</option>';
 
-                if (alumnos.length > 0) {
-                    alumnos.forEach(alumno => {
-                        optionsHtml += `
-                            <option value="${alumno.run}_${alumno.digito_ver}" data-run="${alumno.run}" data-digito_ver="${alumno.digito_ver}">
-                                ${alumno.nombres} ${alumno.apellido_paterno} ${alumno.apellido_materno} 
-                                (RUT: ${alumno.run}-${alumno.digito_ver})
-                            </option>`;
-                    });
-                } else {
-                    optionsHtml += '<option value="">No se encontraron alumnos</option>';
-                }
+//                 if (alumnos.length > 0) {
+//                     alumnos.forEach(alumno => {
+//                         optionsHtml += `
+//                             <option value="${alumno.run}_${alumno.digito_ver}" data-run="${alumno.run}" data-digito_ver="${alumno.digito_ver}">
+//                                 ${alumno.nombres} ${alumno.apellido_paterno} ${alumno.apellido_materno} 
+//                                 (RUT: ${alumno.run}-${alumno.digito_ver})
+//                             </option>`;
+//                     });
+//                 } else {
+//                     optionsHtml += '<option value="">No se encontraron alumnos</option>';
+//                 }
 
-                // Agregar las opciones al select
-                document.getElementById('alumnoSelect').innerHTML = optionsHtml;
-            })
-            .catch(error => console.error('Error:', error)); // Manejo de errores
-    });
+//                 // Agregar las opciones al select
+//                 document.getElementById('alumnoSelect').innerHTML = optionsHtml;
+//             })
+//             .catch(error => console.error('Error:', error)); // Manejo de errores
+//     });
 
-    // Manejar el cambio de selección de alumno y actualizar los campos ocultos
-    document.getElementById('alumnoSelect').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
+//     // Manejar el cambio de selección de alumno y actualizar los campos ocultos
+//     document.getElementById('alumnoSelect').addEventListener('change', function() {
+//         const selectedOption = this.options[this.selectedIndex];
 
-        if (selectedOption.value) {
-            const run = selectedOption.dataset.run;
-            const digitoVer = selectedOption.dataset.digito_ver;
+//         if (selectedOption.value) {
+//             const run = selectedOption.dataset.run;
+//             const digitoVer = selectedOption.dataset.digito_ver;
 
-            // Actualizar los campos ocultos con el RUN y dígito verificador
-            document.getElementById('runInput').value = run;
-            document.getElementById('digitoVerInput').value = digitoVer;
+//             // Actualizar los campos ocultos con el RUN y dígito verificador
+//             document.getElementById('runInput').value = run;
+//             document.getElementById('digitoVerInput').value = digitoVer;
 
-            // Una vez que se selecciona el alumno, abrir el modal de citación
-            $('#searchStudentModal').modal('hide');  // Cierra el modal de búsqueda de alumno
-            $('#citacionModal').modal('show');     // Muestra el modal para añadir citación
-        } else {
-            // Limpiar los campos ocultos si no hay selección
-            document.getElementById('runInput').value = '';
-            document.getElementById('digitoVerInput').value = '';
-        }
-    });
+//             // Una vez que se selecciona el alumno, abrir el modal de citación
+//             $('#searchStudentModal').modal('hide');  // Cierra el modal de búsqueda de alumno
+//             $('#citacionModal').modal('show');     // Muestra el modal para añadir citación
+//         } else {
+//             // Limpiar los campos ocultos si no hay selección
+//             document.getElementById('runInput').value = '';
+//             document.getElementById('digitoVerInput').value = '';
+//         }
+//     });
+
+//     // 
+
+//     document.addEventListener('DOMContentLoaded', function () {
+//     console.log('DOMContentLoaded disparado'); // Verifica que el evento se dispare correctamente
+
+//     // Usar los IDs correctos
+//     const runInput = document.getElementById('runInput'); // El ID debe ser 'runInput', no 'run'
+//     const fechaInput = document.getElementById('fecha_citacion'); // Este ya está correcto
+//     const alerta = document.getElementById('alerta-citaciones'); // Contenedor de alerta
+
+//     // Verificar que los elementos existen antes de agregar eventos
+//     if (runInput && fechaInput && alerta) {
+//         console.log('Elementos encontrados:', { runInput, fechaInput, alerta });
+
+//         // Función para enviar datos al backend
+//         const verificarCitaciones = () => {
+//             const run = runInput.value.trim();
+//             const fecha = fechaInput.value;
+
+//             console.log('Verificando citaciones con RUN:', run, 'y Fecha:', fecha); // Depuración de valores
+
+//             // Verificar si ambos campos están llenos
+//             if (run && fecha) {
+//                 const url = `https://cmvapp.cl/proyecto_capston_laravel/public/check-citaciones?run=${run}&fecha=${fecha}`;
+
+//                 fetch(url, {
+//                     method: 'GET',
+//                     headers: {
+//                         'Content-Type': 'application/json',
+//                     }
+//                 })
+//                 .then(response => response.json())
+//                 .then(data => {
+//                     console.log('Respuesta JSON:', data); // Depuración de respuesta del servidor
+
+//                     if (data.exists) {
+//                         // Mostrar alerta si hay citaciones
+//                         alerta.innerHTML = `
+//                             <div class="alert alert-warning">
+//                                 ${data.message}
+//                             </div>
+//                         `;
+//                     } else {
+//                         // Limpiar alerta si no hay citaciones
+//                         alerta.innerHTML = `
+//                             <div class="alert alert-success">
+//                                 ${data.message}
+//                             </div>
+//                         `;
+//                     }
+//                 })
+//                 .catch(error => console.error('Error en fetch:', error));
+//             } else {
+//                 // Limpiar alerta si los campos no están completos
+//                 alerta.innerHTML = `
+//                     <div class="alert alert-danger">
+//                         Por favor, complete los campos de RUN y Fecha.
+//                     </div>
+//                 `;
+//             }
+//         };
+
+//         // Agregar eventos a los inputs
+//         runInput.addEventListener('input', verificarCitaciones);
+//         fechaInput.addEventListener('change', verificarCitaciones);
+
+//     } else {
+//         console.error('No se encontraron los elementos en el DOM');
+//     }
+// });
+
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOMContentLoaded disparado'); // Verifica que el evento se dispare correctamente
+
+    // Usar los IDs correctos
+    const runInput = document.getElementById('runInput'); // El ID debe ser 'runInput', no 'run'
+    const fechaInput = document.getElementById('fecha_citacion'); // Este ya está correcto
+    const alerta = document.getElementById('alerta-citaciones'); // Contenedor de alerta
+
+    // Verificar que los elementos existen antes de agregar eventos
+    if (runInput && fechaInput && alerta) {
+        console.log('Elementos encontrados:', { runInput, fechaInput, alerta });
+
+        // Función para enviar datos al backend
+        const verificarCitaciones = () => {
+            const run = runInput.value.trim();
+            const fecha = fechaInput.value;
+
+            console.log('Verificando citaciones con RUN:', run, 'y Fecha:', fecha); // Depuración de valores
+
+            // Verificar si ambos campos están llenos
+            if (run && fecha) {
+                const url = `https://cmvapp.cl/proyecto_capston_laravel/public/check-citaciones?run=${run}&fecha=${fecha}`;
+
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Respuesta JSON:', data); // Depuración de respuesta del servidor
+
+                    if (data.exists) {
+        // Mostrar alerta si hay citaciones
+        let alertMessage = `
+            <div class="alert alert-warning">
+                ${data.message}<br>`;
+
+        // Itera sobre las citaciones y muestra sus detalles
+        data.data.forEach(citacion => {
+            alertMessage += `
+                <strong>Hora:</strong> ${citacion.hora_citacion} - <strong>Colaborador:</strong> ${citacion.colaborador} <br>
+                <strong>Tipo de Acción:</strong> ${citacion.tipo_accion} <br>
+            `;
+        });
+
+        alertMessage += `</div>`;
+
+        alerta.innerHTML = alertMessage;
+    } else {
+        // Limpiar alerta si no hay citaciones
+        alerta.innerHTML = '';
+    }
+                })
+                .catch(error => console.error('Error en fetch:', error));
+            } else {
+                // Limpiar alerta si los campos no están completos
+                alerta.innerHTML = `
+                    <div class="alert alert-danger">
+                        Por favor, complete los campos de RUN y Fecha.
+                    </div>
+                `;
+            }
+        };
+
+        // Agregar eventos a los inputs
+        runInput.addEventListener('input', verificarCitaciones);
+        fechaInput.addEventListener('change', verificarCitaciones);
+
+        // Buscando alumnos
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Evita el envío del formulario
+
+            const cursoSeleccionado = document.querySelector('select[name="cod_tipo_ensenanza"]').value;
+            const search = document.getElementById('searchInput').value;
+
+            // Prepara la URL de la solicitud con los parámetros
+            const url = new URL('{{ route("buscarAlumnos2") }}', window.location.origin);
+            const params = new URLSearchParams();
+            params.append('cod_tipo_ensenanza', cursoSeleccionado);
+            params.append('search', search);
+
+            // Realiza la solicitud fetch
+            fetch(url + '?' + params.toString())
+                .then(response => response.json())
+                .then(data => {
+                    const alumnos = data.alumnos;
+                    let optionsHtml = '<option value="">-- Selecciona un alumno --</option>';
+
+                    if (alumnos.length > 0) {
+                        alumnos.forEach(alumno => {
+                            optionsHtml += `
+                                <option value="${alumno.run}_${alumno.digito_ver}" data-run="${alumno.run}" data-digito_ver="${alumno.digito_ver}">
+                                    ${alumno.nombres} ${alumno.apellido_paterno} ${alumno.apellido_materno} 
+                                    (RUT: ${alumno.run}-${alumno.digito_ver})
+                                </option>`;
+                        });
+                    } else {
+                        optionsHtml += '<option value="">No se encontraron alumnos</option>';
+                    }
+
+                    // Agregar las opciones al select
+                    document.getElementById('alumnoSelect').innerHTML = optionsHtml;
+                })
+                .catch(error => console.error('Error:', error)); // Manejo de errores
+        });
+
+        // Manejar el cambio de selección de alumno y actualizar los campos ocultos
+        document.getElementById('alumnoSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+
+            if (selectedOption.value) {
+                const run = selectedOption.dataset.run;
+                const digitoVer = selectedOption.dataset.digito_ver;
+
+                // Actualizar los campos ocultos con el RUN y dígito verificador
+                document.getElementById('runInput').value = run;
+                document.getElementById('digitoVerInput').value = digitoVer;
+
+                // Una vez que se selecciona el alumno, abrir el modal de citación
+                $('#searchStudentModal').modal('hide');  // Cierra el modal de búsqueda de alumno
+                $('#citacionModal').modal('show');     // Muestra el modal para añadir citación
+
+                // Llamar a la función verificarCitaciones inmediatamente después de abrir el modal
+                verificarCitaciones();
+            } else {
+                // Limpiar los campos ocultos si no hay selección
+                document.getElementById('runInput').value = '';
+                document.getElementById('digitoVerInput').value = '';
+            }
+        });
+
+    } else {
+        console.error('No se encontraron los elementos en el DOM');
+    }
+});
+
 
 
 </script>
