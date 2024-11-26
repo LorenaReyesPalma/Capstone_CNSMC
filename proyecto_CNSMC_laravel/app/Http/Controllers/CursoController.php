@@ -16,6 +16,54 @@ class CursoController extends Controller
  
     public function index()
     {
+        // Verificar si el usuario tiene la categoría id_category 3
+        Log::info('Verificando la categoría del usuario', ['id_category' => auth()->user()->id_category]);
+        $codTipoEnsenanza = 0;
+        $codGrado= 0;
+        $letraCurso = 0;
+        $alumnos= [];
+        $curso = ''; // Inicializamos la variable curso
+    
+        if (auth()->user()->id_category == 3) {
+            // Obtener el curso_id desde la tabla curso_user
+            Log::info('El usuario tiene categoría 3, obteniendo curso asociado', ['user_id' => auth()->user()->user_id]);
+    
+            $cursoUser = DB::table('curso_user')
+                ->where('user_id', auth()->user()->user_id) // Usando user_id correctamente
+                ->first(); // Obtener el primer registro que coincida
+            
+            $cursoId = $cursoUser ? $cursoUser->curso_id : null; // Asignar el curso_id si existe el registro
+    
+            if ($cursoId) {
+                // Ahora que tenemos el curso_id, buscamos el curso correspondiente
+                Log::info('Curso ID encontrado, buscando curso correspondiente', ['curso_id' => $cursoId]);
+    
+                $curso = DB::table('curso')
+                    ->where('id', $cursoId) // Buscar el curso por su id
+                    ->first(); // Obtener el primer registro que coincida
+    
+                // Verificar si se encontró el curso y obtener los atributos
+                if ($curso) {
+                    $codTipoEnsenanza = $curso->cod_tipo_ensenanza;
+                    $codGrado = $curso->cod_grado;
+                    $letraCurso = $curso->letra_curso;
+    
+                    // Log los valores encontrados
+                    Log::info('Curso encontrado', [
+                        'cod_tipo_ensenanza' => $codTipoEnsenanza,
+                        'cod_grado' => $codGrado,
+                        'letra_curso' => $letraCurso
+                    ]);
+                } else {
+                    Log::warning('No se encontró el curso con el id proporcionado', ['curso_id' => $cursoId]);
+                }
+            } else {
+                Log::warning('No se encontró un curso asociado al usuario', ['user_id' => auth()->user()->user_id]);
+            }
+        } else {
+            Log::info('El usuario no tiene categoría 3, procediendo con el flujo normal');
+        }
+
         // Obtener todos los cursos para mostrar en el formulario
         $cursos = Matricula::select('cod_tipo_ensenanza', 'cod_grado', 'desc_grado', 'letra_curso')
             ->distinct()
@@ -33,22 +81,78 @@ class CursoController extends Controller
             ->orderBy('expedientes.fecha_creacion', 'desc') // Ordenar por fecha_creacion de expedientes
             ->paginate(10, ['matricula.*']); // Especifica 10 resultados por página (ajusta el número si es necesario)
         
+       
         // Marcar que estos alumnos tienen un expediente
         foreach ($alumnosConExpediente as $alumno) {
             $alumno->expediente_existe = true;
+        
         }
+
+        $alumnos = $alumnosConExpediente;
+
     
         // Pasar los cursos y alumnos a la vista
-        return view('buscar-alumnos', [
-            'cursos' => $cursos,
-            'alumnos' => $alumnosConExpediente // Mostrar alumnos con expediente inicialmente con paginación
-        ]);
+        return view('buscar-alumnos', compact(
+            'cursos', 
+            'alumnos', 
+            'codTipoEnsenanza', 
+            'codGrado', 
+            'letraCurso'
+        ));
+        
     }
     
 
 
     public function buscarAlumnos(Request $request)
     {
+             // Verificar si el usuario tiene la categoría id_category 3
+             Log::info('Verificando la categoría del usuario', ['id_category' => auth()->user()->id_category]);
+             $codTipoEnsenanza = null;
+             $codGrado= null;
+             $letraCurso = null;
+         
+             $curso = ''; // Inicializamos la variable curso
+         
+             if (auth()->user()->id_category == 3) {
+                 // Obtener el curso_id desde la tabla curso_user
+                 Log::info('El usuario tiene categoría 3, obteniendo curso asociado', ['user_id' => auth()->user()->user_id]);
+         
+                 $cursoUser = DB::table('curso_user')
+                     ->where('user_id', auth()->user()->user_id) // Usando user_id correctamente
+                     ->first(); // Obtener el primer registro que coincida
+                 
+                 $cursoId = $cursoUser ? $cursoUser->curso_id : null; // Asignar el curso_id si existe el registro
+         
+                 if ($cursoId) {
+                     // Ahora que tenemos el curso_id, buscamos el curso correspondiente
+                     Log::info('Curso ID encontrado, buscando curso correspondiente', ['curso_id' => $cursoId]);
+         
+                     $curso = DB::table('curso')
+                         ->where('id', $cursoId) // Buscar el curso por su id
+                         ->first(); // Obtener el primer registro que coincida
+         
+                     // Verificar si se encontró el curso y obtener los atributos
+                     if ($curso) {
+                         $codTipoEnsenanza = $curso->cod_tipo_ensenanza;
+                         $codGrado = $curso->cod_grado;
+                         $letraCurso = $curso->letra_curso;
+         
+                         // Log los valores encontrados
+                         Log::info('Curso encontrado', [
+                             'cod_tipo_ensenanza' => $codTipoEnsenanza,
+                             'cod_grado' => $codGrado,
+                             'letra_curso' => $letraCurso
+                         ]);
+                     } else {
+                         Log::warning('No se encontró el curso con el id proporcionado', ['curso_id' => $cursoId]);
+                     }
+                 } else {
+                     Log::warning('No se encontró un curso asociado al usuario', ['user_id' => auth()->user()->user_id]);
+                 }
+             } else {
+                 Log::info('El usuario no tiene categoría 3, procediendo con el flujo normal');
+             }
         // Obtener los valores de búsqueda del curso y del input de búsqueda (RUT o nombre)
         $cursoSeleccionado = $request->input('cod_tipo_ensenanza');
         $search = $request->input('search');
@@ -103,7 +207,9 @@ class CursoController extends Controller
             ->get();
     
         // Retornar la vista con los resultados
-        return view('buscar-alumnos', compact('alumnos', 'cursos'));
+        return view('buscar-alumnos', compact('alumnos', 'cursos', 'codTipoEnsenanza', 
+        'codGrado', 
+        'letraCurso'));
     }
     
     

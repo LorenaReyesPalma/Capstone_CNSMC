@@ -8,21 +8,34 @@ use App\Models\Matricula;
 use App\Models\Derivacion;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+
+
+use Illuminate\Support\Facades\Log; // Asegúrate de importar Log al inicio del archivo
+
 
 class CitacionController extends Controller
 {
     public function store(Request $request, $derivacion_id)
     {
         $colaborador = Auth::user(); // Obtenemos el usuario autenticado
-
+    
         // Validación de los datos
         $request->validate([
             'tipo_accion' => 'required|string',
-            'fecha_citacion' => 'required|date',
+            'fecha_citacion' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) {
+                    if (strtotime($value) < strtotime(date('Y-m-d'))) {
+                        $fail('La fecha de la citación no puede ser anterior a la fecha actual.');
+                    }
+                },
+            ],
             'hora_citacion' => ['required', 'regex:/^([01]\d|2[0-3]):([0-5]\d)$/'], // Hora en formato 24 horas
             'observaciones' => 'nullable|string',
         ]);
-
+    
         // Crear la citación
         Citacion::create([
             'derivacion_id' => $derivacion_id,
@@ -33,11 +46,11 @@ class CitacionController extends Controller
             'estado' => 1, // Valor predeterminado para estado
             'colaborador' => $colaborador->user_id,
         ]);
-
+    
         // Redirigir a la vista de la derivación usando su id
         return redirect()->route('derivacion.show', $derivacion_id)->with('success', 'Citación creada correctamente');
     }
-
+    
 
 public function obtenerCitaciones()
 {
@@ -143,18 +156,25 @@ public function citacionShow(Request $request)
 }
 
 
-    public function guardarCitacion(Request $request)
+public function guardarCitacion(Request $request)
 {
     $colaborador = Auth::user(); // Obtenemos el usuario autenticado
-
-    // Mostrar los datos del formulario
 
     // Validación de la solicitud
     $request->validate([
         'run' => 'required',
         'digito_ver' => 'required',
         'tipo_accion' => 'required',
-        'fecha_citacion' => 'required|date',
+        'fecha_citacion' => [
+            'required',
+            'date',
+            function ($attribute, $value, $fail) {
+                // Validación para verificar si la fecha es anterior a la fecha actual
+                if (strtotime($value) < strtotime(date('Y-m-d'))) {
+                    $fail('La fecha de la citación no puede ser anterior a la fecha actual.');
+                }
+            },
+        ],
         'hora_citacion' => 'required|date_format:H:i',
         'observaciones' => 'nullable',
     ]);
@@ -179,6 +199,7 @@ public function citacionShow(Request $request)
 
     return redirect()->route('citacionShow')->with('success', 'Citación guardada exitosamente.');
 }
+
 
 
     public function buscarAlumnos2(Request $request)
@@ -216,5 +237,100 @@ public function citacionShow(Request $request)
     return response()->json(['alumnos' => $alumnos]);
 }
 
-    
+// public function checkCitaciones(Request $request)
+// {
+//     $request->validate([
+//         'run' => 'required|numeric',
+//         'fecha' => 'required|date',  // Verifica que 'fecha' sea una fecha válida
+//     ]);
+
+//     $run = $request->query('run');
+//     $fecha = $request->query('fecha');
+
+//     // Consulta las citaciones por RUN o derivación para la misma fecha
+//     $citaciones = DB::table('citaciones')
+//         ->select('citaciones.*', 'citaciones.hora_citacion')  // Asegúrate de seleccionar la columna 'hora_citacion'
+//         ->where(function ($query) use ($run) {
+//             $query->where('run', $run)
+//                   ->orWhereExists(function ($subQuery) use ($run) {
+//                       $subQuery->select(DB::raw(1))
+//                                ->from('derivacions')
+//                                ->whereColumn('derivacions.run', 'citaciones.run')
+//                                ->where('derivacions.run', $run);
+//                   });
+//         })
+//         ->whereDate('fecha_citacion', $fecha)
+//         ->get();
+
+//     if ($citaciones->isEmpty()) {
+//         return response()->json([
+//             'exists' => false,
+//             'message' => "No existen citaciones para el RUN: $run y la fecha: $fecha.",
+//         ]);
+//     } else {
+//         // Construir el mensaje con las horas de citación
+//         $horasCitacion = $citaciones->pluck('hora_citacion')->implode(', ');
+
+//         return response()->json([
+//             'exists' => true,
+//             'message' => "Se encontraron citaciones para el RUN: $run y la fecha: $fecha. Las horas de citación son: $horasCitacion.",
+//             'data' => $citaciones,
+//         ]);
+//     }
+// }
+
+public function checkCitaciones(Request $request)
+{
+    $request->validate([
+        'run' => 'required|numeric',
+        'fecha' => 'required|date',  // Verifica que 'fecha' sea una fecha válida
+    ]);
+
+    $run = $request->query('run');
+    $fecha = $request->query('fecha');
+
+    // Consulta las citaciones por RUN o derivación para la misma fecha
+    $citaciones = DB::table('citaciones')
+        ->select('citaciones.*', 'citaciones.hora_citacion', 'citaciones.tipo_accion', 'user.first_name', 'user.last_name') // Selecciona los campos adicionales
+        ->join('user', 'user.user_id', '=', 'citaciones.colaborador') // Ajusta el JOIN para usar 'user_id' en lugar de 'id'
+        ->where(function ($query) use ($run) {
+            $query->where('run', $run)
+                  ->orWhereExists(function ($subQuery) use ($run) {
+                      $subQuery->select(DB::raw(1))
+                               ->from('derivacions')
+                               ->whereColumn('derivacions.run', 'citaciones.run')
+                               ->where('derivacions.run', $run);
+                  });
+        })
+        ->whereDate('fecha_citacion', $fecha)
+        ->get();
+
+    if ($citaciones->isEmpty()) {
+        return response()->json([
+            'exists' => false,
+            'message' => "No existen citaciones para el RUN: $run y la fecha: $fecha.",
+        ]);
+    } else {
+        // Construir el mensaje con las horas de citación y los datos de los colaboradores
+        $horasCitacion = $citaciones->pluck('hora_citacion')->implode(', ');
+
+        // Puedes construir una respuesta que también incluya el colaborador y el tipo de acción
+        $responseData = $citaciones->map(function($citacion) {
+            return [
+                'hora_citacion' => $citacion->hora_citacion,
+                'tipo_accion' => $citacion->tipo_accion,
+                'colaborador' => $citacion->first_name . ' ' . $citacion->last_name, // Concatenando el nombre completo del colaborador
+            ];
+        });
+
+        return response()->json([
+            'exists' => true,
+            'message' => "Se encontraron citaciones para el RUN: $run y la fecha: $fecha. Las horas de citación son: $horasCitacion.",
+            'data' => $responseData,
+        ]);
+    }
+}
+
+
+
 }

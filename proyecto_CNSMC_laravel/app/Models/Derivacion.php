@@ -40,4 +40,11 @@ class Derivacion extends Model
     {
         return $this->hasMany(Citacion::class);
     }
+
+    public function cambiosEstado()
+{
+    return $this->hasMany(CambioEstadoDerivacion::class, 'derivacion_id');
+}
+
+    
 }

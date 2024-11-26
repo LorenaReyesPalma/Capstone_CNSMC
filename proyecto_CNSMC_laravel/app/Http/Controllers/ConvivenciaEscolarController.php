@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Derivacion;
 use App\Models\User;
+use App\Models\CambioEstadoDerivacion;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use Illuminate\Support\Facades\Log;
 
 
 use Illuminate\Http\Request;
@@ -127,15 +133,155 @@ class ConvivenciaEscolarController extends Controller
     }
     
     public function aceptarDerivacion($id)
-{
-    // Buscar la derivación por ID
-    $derivacion = Derivacion::findOrFail($id);
-    
-    // Cambiar estado a completado (por ejemplo, estado_id = 2)
-    $derivacion->estado_id = 2;
-    $derivacion->save();
+    {
+        try {
 
-    // Redirigir con mensaje de éxito
-    return redirect()->back()->with('success', 'Derivación aceptada exitosamente.');
+        $colaborador = Auth::user(); // Obtenemos el usuario autenticado
+
+        // Buscar la derivación por ID
+        $derivacion = Derivacion::findOrFail($id);
+        $nombreEstudiante = $derivacion->nombre_estudiante;
+        $cursoEstudiante = $derivacion->curso;
+        // Cambiar estado a completado (por ejemplo, estado_id = 2)
+        $derivacion->estado_id = 2;
+        $derivacion->save();
+        $usuarioLogueado = auth()->user(); // El usuario logueado
+
+    
+        // Registrar el cambio de estado en la tabla CambioEstadoDerivacion
+        CambioEstadoDerivacion::create([
+            'derivacion_id' => $derivacion->id,
+            'estado_id' => 2, // Estado completado
+            'fecha_actualizacion' => now(),
+            'colaborador_acepta' => $colaborador->user_id, // Agregar el ID del usuario logueado
+
+        ]);
+        $nuevoEstado = 2;
+        $estadoNombre = 'Estado desconocido'; // valor por defecto
+        if ($nuevoEstado == 1) {
+            $estadoNombre = 'Pendiente';
+        } elseif ($nuevoEstado == 2) {
+            $estadoNombre = 'Aceptado';
+        } elseif ($nuevoEstado == 3) {
+            $estadoNombre = 'Finalizado';
+        }
+        $usuarios = User::where('id_category', 1)->get();
+
+         // Enviar email a todos los usuarios
+         foreach ($usuarios as $user) {
+            // Configurar PHPMailer
+            $mail = new PHPMailer(true);
+
+            try {
+                // Configuración del servidor SMTP
+                $mail->isSMTP();
+                $mail->Host = 'mail.cmvapp.cl';
+                $mail->SMTPAuth = true;
+                $mail->Username = 'soporte@cmvapp.cl';
+                $mail->Password = 'Soportecmv2043'; // La contraseña del correo
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Para SSL
+                $mail->Port = 465;
+
+                // Configurar el conjunto de caracteres a UTF-8
+                $mail->CharSet = 'UTF-8';
+
+                // Destinatarios
+                $mail->setFrom('soporte@marianistasmelipilla.cl', 'Soporte Derivaciones Escolares');
+                $mail->addAddress($user->email); // Agrega un destinatario
+
+                // Contenido del correo
+                $mail->isHTML(true);
+                $mail->Subject = 'Cambio de Estado de Derivación';
+
+                // Contenido HTML
+                $mail->Body = '
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Cambio de Estado de Derivación</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: auto;
+                            background: #fff;
+                            padding: 20px;
+                            border-radius: 5px;
+                            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                        }
+                        h1 {
+                            color: #333;
+                        }
+                        p {
+                            line-height: 1.5;
+                            color: #555;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            font-size: 0.8em;
+                            color: #777;
+                        }
+                        .btn {
+                            display: inline-block;
+                            padding: 10px 15px;
+                            color: #fff !important;
+                            background-color: #007bff;
+                            text-decoration: none;
+                            border-radius: 5px;
+                            border: none;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+                        }
+                        .btn:hover {
+                            background-color: #0056b3;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Hola!</h1>
+                        <p>Se ha actualizado el estado de la derivación de <strong>' . $nombreEstudiante . '</strong> (Curso: ' . $cursoEstudiante . ').</p>
+                        <p>Estado actual: <strong>' . $estadoNombre . '</strong>.</p>
+                        <p>Por favor, revisa la derivación para más detalles.</p>
+                        <a href="https://cmvapp.cl/proyecto_capston_laravel/public/login" class="btn">Iniciar Sesión</a>
+                        <div class="footer">
+                            <p>Gracias,<br>El equipo de soporte.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                ';
+
+                // Enviar el correo
+                if ($mail->send()) {
+                    Log::info("Correo enviado a: " . $user->email); // Log para verificar que el correo fue enviado
+                } else {
+                    Log::error("Error al enviar el correo a: " . $user->email); // Log en caso de error
+                }
+            } catch (Exception $e) {
+                // Registra el error para depuración
+                Log::error("Error al enviar correo a " . $user->email . ": " . $e->getMessage());
+            }
+        }
+
+        // Redirigir con mensaje de éxito
+        return redirect()->back()->with('success', 'El estado de la derivación se actualizó correctamente, y los correos han sido enviados.');
+    } catch (\Exception $e) {
+        // Registrar el error para depuración
+        logger()->error('Error al cambiar el estado de la derivación: ' . $e->getMessage());
+
+        // Redirigir con mensaje de error
+        return redirect()->back()->with('error', 'Hubo un problema al actualizar el estado. Por favor, intente nuevamente.');
+    }
 }
+        
+
+
 }
